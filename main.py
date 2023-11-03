@@ -120,7 +120,7 @@ def over24Hdatetime(year, month, day, times):
     """
     24H以上の時刻をdatetimeに変換する
     """
-    if ':' in times:
+    if times.count(':') == 2:
         hour, minute = times.split(":")[:-1]
     else:
         # 1900 という表記の時がある
