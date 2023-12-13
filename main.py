@@ -17,6 +17,10 @@ from google.auth.transport.requests import Request
 
 
 def build_calendar_api():
+    """
+    Google Calendar APIを構築します。
+    トークンが存在する場合はそれを使用し、存在しない場合は新たに生成します。
+    """
     SCOPES = ["https://www.googleapis.com/auth/calendar"]
     creds = None
     if os.path.exists("token.pickle"):
@@ -34,69 +38,82 @@ def build_calendar_api():
 
     return service
 
-
 def remove_blank(text):
+    """
+    テキストから空白を削除し、全角文字を半角に変換します。
+    """
     text = text.replace("\n", "")
     text = re.sub('^ +', '', text)
     text = re.sub(' +$', '', text)
     text = mojimoji.zen_to_han(text, kana=False)
     return text
 
-
 def search_event_each_date(year, month):
-    url = (
-        f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
-    )
+    """
+    指定した年と月のイベントを検索します。
+    """
+    url = f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
     result = requests.get(url)
     soup = BeautifulSoup(result.content, features="lxml")
+
+    # ページの年と月を取得
     page_year = remove_blank(soup.find("div", {"class": "c-schedule__page_year"}).text).replace('年', '')
     page_month = remove_blank(soup.find("div", {"class": "c-schedule__page_month"}).text).replace('月', '')
 
+    # 年と月が一致しない場合はエラー
     if int(year) != int(page_year) or int(month) != int(page_month):
         print("Error URL")
         return
 
+    # 各日付のイベントを取得
     events_each_date = soup.find_all("div", {"class": "p-schedule__list-group"})
 
-    time.sleep(3)  # NOTE:サーバーへの負荷を解消
+    # サーバーへの負荷を解消するために一時停止
+    time.sleep(3)
 
     return events_each_date
 
-
 def search_start_and_end_time(event_time_text):
+    """
+    イベントの開始時間と終了時間を検索します。
+    """
+    # 終了時間が存在するか確認
     has_end = event_time_text[-1] != "~"
     if has_end:
         start, end = event_time_text.split("~")
     else:
-        start = event_time_text.split("~")[0]
-        end = start
+        start = end = event_time_text.split("~")[0]
     start += ":00"
     end += ":00"
     return start, end
 
-
 def search_event_info(event_each_date):
-    event_date_text = remove_blank(event_each_date.contents[1].text)[
-        :-1
-    ]  # NOTE:曜日以外の情報を取得
+    """
+    各日付のイベント情報を検索します。
+    """
+    event_date_text = remove_blank(event_each_date.contents[1].text)[:-1]  # 曜日以外の情報を取得
     events_time = event_each_date.find_all("div", {"class": "c-schedule__time--list"})
     events_name = event_each_date.find_all("p", {"class": "c-schedule__text"})
-    events_category = event_each_date.find_all("div", {"class": "p-schedule__head"},)
+    events_category = event_each_date.find_all("div", {"class": "p-schedule__head"})
     events_link = event_each_date.find_all("li", {"class": "p-schedule__item"})
 
     return event_date_text, events_time, events_name, events_category, events_link
 
-
 def search_detail_info(event_name, event_category, event_time, event_link):
+    """
+    イベントの詳細情報を検索します。
+    """
     event_name_text = remove_blank(event_name.text)
     event_category_text = remove_blank(event_category.contents[1].text)
     event_time_text = remove_blank(event_time.text)
-    event_link_text = event_link.find("a")["href"]
-    event_link_text = f"https://www.hinatazaka46.com{event_link_text}"
+    event_link_text = f"https://www.hinatazaka46.com{event_link.find('a')['href']}"
 
     return event_name_text, event_category_text, event_time_text, event_link_text
 
 def search_active_member(event_link_text):
+    """
+    アクティブなメンバーを検索します。
+    """
     try:
         result = requests.get(event_link_text)
         soup = BeautifulSoup(result.content, features="lxml")
@@ -105,16 +122,12 @@ def search_active_member(event_link_text):
         if active_members is None:
             return ""
         
-        active_members_text = "メンバー:"
-        for active_member in active_members:
-            active_members_text = active_members_text + active_member.text + ","
-        active_members_text = active_members_text[:-1]
-        time.sleep(3)  # NOTE:サーバー負荷の解消
+        active_members_text = "メンバー:" + ",".join(member.text for member in active_members)
+        time.sleep(3)  # サーバー負荷の解消
     except AttributeError:
         return ""
 
     return active_members_text
-
 
 def over24Hdatetime(year, month, day, times):
     """
