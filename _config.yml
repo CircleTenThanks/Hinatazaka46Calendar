@@ -3,3 +3,9 @@ description: 日向坂46のスケジュールを自身のGoogleカレンダー�
 lang: ja_JP
 plugins:
   - jekyll-seo-tag
+social:
+  name:  CircleTenThanks 
+  links:
+    - https://github.com/CircleTenThanks
+    - https://www.youtube.com/@CircleTenThanks
+    - https://twitter.com/CircleTenThanks
