@@ -1,9 +1,3 @@
----
-layout: default
-title: 日向坂46 Googleカレンダー
-description: 日向坂46のスケジュールを自身のGoogleカレンダーへ追加できるようにすることで、推し活ライフのサポートを目指しています。  
-lang: ja_JP
----
 # Hinatazaka46Calendar
 ![](img/overture.jpg)
 日向坂46のスケジュールを自身のGoogleカレンダーへ追加できるようにすることで、推し活ライフのサポートを目指しています。  
