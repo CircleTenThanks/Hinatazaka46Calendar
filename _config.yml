@@ -3,6 +3,7 @@ description: 日向坂46のスケジュールを自身のGoogleカレンダー�
 lang: ja_JP
 plugins:
   - jekyll-seo-tag
+url: https://github.com/CircleTenThanks/Hinatazaka46Calendar
 social:
   name:  CircleTenThanks 
   links:
