@@ -15,61 +15,6 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
-def main():
-    #me = singleton.SingleInstance() 
-
-    # -------------------------step1:各種設定-------------------------
-    # API系
-    calendarId = (
-        os.environ['CALENDAR_ID_HNZ']  # NOTE:自分のカレンダーID
-    )
-    service = build_calendar_api()
-
-    # サーチ範囲
-    num_search_month = 3  # NOTE;3ヶ月先の予定までカレンダーに反映
-    current_search_date = datetime.datetime.now()
-    year = current_search_date.year
-    month = current_search_date.month
-
-    # -------------------------step2.各日付ごとの情報を取得-------------------------
-    for _ in range(num_search_month):
-        month = "{:0=2}".format(int(month))
-        events_each_date = search_event_each_date(year, month)
-        if events_each_date == None:
-            continue
-        for event_each_date in events_each_date:
-
-            # step3: 特定の日の予定を一括で取得
-            (
-                event_date_text,
-                events_time,
-                events_name,
-                events_category,
-                events_link,
-            ) = search_event_info(event_each_date)
-
-            event_date_text = "{:0=2}".format(
-                int(event_date_text)
-            )  # NOTE;２桁になるように0埋め（ex.0-> 01）
-            start = f"{year}-{month}-{event_date_text}"
-            previous_add_event_lists = search_events(service, calendarId, start)
-
-            # step4: カレンダーへ情報を追加
-            for event_name, event_category, event_time, event_link in zip(
-                events_name, events_category, events_time, events_link
-            ):
-                add_date_schedule(
-                    event_name,
-                    event_category,
-                    event_time,
-                    event_link,
-                    previous_add_event_lists,
-                )
-
-        # step5:次の月へ
-        current_search_date = current_search_date + relativedelta(months=1)
-        year = current_search_date.year
-        month = current_search_date.month
 
 def build_calendar_api():
     """
@@ -317,4 +262,57 @@ def add_info_to_calendar(calendarId, summary, start, end, active_members, event_
 
 
 if __name__ == "__main__":
-    main()
+    #me = singleton.SingleInstance() 
+
+    # -------------------------step1:各種設定-------------------------
+    # API系
+    calendarId = (
+        os.environ['CALENDAR_ID_HNZ']  # NOTE:自分のカレンダーID
+    )
+    service = build_calendar_api()
+
+    # サーチ範囲
+    num_search_month = 3  # NOTE;3ヶ月先の予定までカレンダーに反映
+    current_search_date = datetime.datetime.now()
+    year = current_search_date.year
+    month = current_search_date.month
+
+    # -------------------------step2.各日付ごとの情報を取得-------------------------
+    for _ in range(num_search_month):
+        month = "{:0=2}".format(int(month))
+        events_each_date = search_event_each_date(year, month)
+        if events_each_date == None:
+            continue
+        for event_each_date in events_each_date:
+
+            # step3: 特定の日の予定を一括で取得
+            (
+                event_date_text,
+                events_time,
+                events_name,
+                events_category,
+                events_link,
+            ) = search_event_info(event_each_date)
+
+            event_date_text = "{:0=2}".format(
+                int(event_date_text)
+            )  # NOTE;２桁になるように0埋め（ex.0-> 01）
+            start = f"{year}-{month}-{event_date_text}"
+            previous_add_event_lists = search_events(service, calendarId, start)
+
+            # step4: カレンダーへ情報を追加
+            for event_name, event_category, event_time, event_link in zip(
+                events_name, events_category, events_time, events_link
+            ):
+                add_date_schedule(
+                    event_name,
+                    event_category,
+                    event_time,
+                    event_link,
+                    previous_add_event_lists,
+                )
+
+        # step5:次の月へ
+        current_search_date = current_search_date + relativedelta(months=1)
+        year = current_search_date.year
+        month = current_search_date.month
