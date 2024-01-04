@@ -1,5 +1,5 @@
 # Hinatazaka46Calendar
-<iframe src="https://calendar.google.com/calendar/embed?&showTitle=0&mode=AGENDA&src=57f2f2a766a36a19faf47870711509914dc87f374fb03c38140e22e06f7ed1c4%40group.calendar.google.com&ctz=Asia%2FTokyo" style="border: 0" width="100%" height="600" frameborder="0" scrolling="no"></iframe>
+<iframe src="https://calendar.google.com/calendar/embed?&showTitle=0&mode=AGENDA&src=57f2f2a766a36a19faf47870711509914dc87f374fb03c38140e22e06f7ed1c4%40group.calendar.google.com&ctz=Asia%2FTokyo" style="border: 0" width="100%" height="300" frameborder="0" scrolling="no"></iframe>
 
 日向坂46のスケジュールをGoogleカレンダーへ自動追加し、充実したおひさまライフをサポートします。  
 [こちら](https://qiita.com/ddn/items/42def5fa721e531eecdb)で紹介されているGoogleカレンダーの共有リンクが2023/02頃から稼働しておらず、勝手ながら本リポジトリを立ち上げました。
