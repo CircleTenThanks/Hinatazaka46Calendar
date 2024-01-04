@@ -6,9 +6,12 @@
 
 ## 共有リンク
 
-* ご自身のGoogleカレンダーへ自動追加するには、 [こちらのGoogleカレンダー共有リンク](https://calendar.google.com/calendar/u/0?cid=NTdmMmYyYTc2NmEzNmExOWZhZjQ3ODcwNzExNTA5OTE0ZGM4N2YzNzRmYjAzYzM4MTQwZTIyZTA2ZjdlZDFjNEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t) から設定してください。
-    * PCのブラウザからGoogleアカウントにログインした状態でクリックすると、簡単に設定できます。
-    * スマートフォンから設定する場合は [#1](https://github.com/CircleTenThanks/Hinatazaka46Calendar/issues/1#issuecomment-1783007351) を参考にしてください。
+* Googleカレンダー
+  * ご自身のGoogleカレンダーへ追加するには、上記カレンダー右下の `+Googleカレンダー`から設定してください。
+  * スマートフォンでうまく設定できない場合は [#1](https://github.com/CircleTenThanks/Hinatazaka46Calendar/issues/1#issuecomment-1783007351) を参考にしてください。
+* iCal形式(ICS形式)
+  * [こちら](https://calendar.google.com/calendar/ical/57f2f2a766a36a19faf47870711509914dc87f374fb03c38140e22e06f7ed1c4%40group.calendar.google.com/public/basic.ics)のリンクをコピーすると、iCal形式の共有リンクがコピーできます。お使いのカレンダーアプリがiCal形式に対応していれば、Googleカレンダー以外のカレンダーアプリへ追加することも可能です。
+  * [iPhoneにインストールされているカレンダーアプリでの設定例](https://support.apple.com/ja-jp/guide/iphone/iph3d1110d4/ios)
 
 
 ## 仕組み
