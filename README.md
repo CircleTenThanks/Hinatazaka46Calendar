@@ -1,14 +1,15 @@
 # Hinatazaka46Calendar
-![](img/overture.jpg)
-日向坂46のスケジュールを自身のGoogleカレンダーへ追加できるようにすることで、推し活ライフのサポートを目指しています。  
-[こちら](https://qiita.com/ddn/items/42def5fa721e531eecdb)で紹介されているGoogleカレンダー共有リンクが2023/02頃から稼働しておらず、勝手ながら本リポジトリを立ち上げました。
+<iframe src="https://calendar.google.com/calendar/embed?&showTitle=0&mode=AGENDA&src=57f2f2a766a36a19faf47870711509914dc87f374fb03c38140e22e06f7ed1c4%40group.calendar.google.com&ctz=Asia%2FTokyo" style="border: 0" width="100%" height="600" frameborder="0" scrolling="no"></iframe>
 
-## Googleカレンダー共有リンク
+日向坂46のスケジュールをGoogleカレンダーへ自動追加し、充実したおひさまライフをサポートします。  
+[こちら](https://qiita.com/ddn/items/42def5fa721e531eecdb)で紹介されているGoogleカレンダーの共有リンクが2023/02頃から稼働しておらず、勝手ながら本リポジトリを立ち上げました。
 
-* ご自身のGoogleアカウントに追加したい方は [こちら](https://calendar.google.com/calendar/u/0?cid=NTdmMmYyYTc2NmEzNmExOWZhZjQ3ODcwNzExNTA5OTE0ZGM4N2YzNzRmYjAzYzM4MTQwZTIyZTA2ZjdlZDFjNEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t) 
-    * うまく行かない場合は [#1](https://github.com/CircleTenThanks/Hinatazaka46Calendar/issues/1#issuecomment-1783007351)
-* ブラウザ上でGoogleカレンダーを見たい方は[こちら](https://calendar.google.com/calendar/embed?src=57f2f2a766a36a19faf47870711509914dc87f374fb03c38140e22e06f7ed1c4%40group.calendar.google.com&ctz=Asia%2FTokyo)
-  * スマホの場合は右上の`予定リスト`をタップすると見易くなります。
+## 共有リンク
+
+* ご自身のGoogleカレンダーへ自動追加するには、 [こちらのGoogleカレンダー共有リンク](https://calendar.google.com/calendar/u/0?cid=NTdmMmYyYTc2NmEzNmExOWZhZjQ3ODcwNzExNTA5OTE0ZGM4N2YzNzRmYjAzYzM4MTQwZTIyZTA2ZjdlZDFjNEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t) から設定してください。
+    * PCのブラウザからGoogleアカウントにログインした状態でクリックすると、簡単に設定できます。
+    * スマートフォンから設定する場合は [#1](https://github.com/CircleTenThanks/Hinatazaka46Calendar/issues/1#issuecomment-1783007351) を参考にしてください。
+
 
 ## 仕組み
 
