@@ -187,20 +187,17 @@ def prepare_info_for_calendar(event_name_text, event_category_text, event_time_t
     return event_title, event_start, event_end, is_date
 
 
-def change_event_starttime_to_jst(events):
-    events_starttime = []
-    for event in events:
-        if "date" in event["start"].keys():
-            events_starttime.append(event["start"]["date"])
-        else:
-            str_event_uct_time = event["start"]["dateTime"]
-            event_jst_time = datetime.datetime.strptime(
-                str_event_uct_time, "%Y-%m-%dT%H:%M:%S+09:00"
-            )
-            str_event_jst_time = event_jst_time.strftime("%Y-%m-%dT%H:%M:%S")
-            events_starttime.append(str_event_jst_time)
-    return events_starttime
+def change_event_starttime_to_jst(event):
 
+    if "date" in event["start"].keys():
+        return event["start"]["date"]
+    else:
+        str_event_uct_time = event["start"]["dateTime"]
+        event_jst_time = datetime.datetime.strptime(
+            str_event_uct_time, "%Y-%m-%dT%H:%M:%S+09:00"
+        )
+        str_event_jst_time = event_jst_time.strftime("%Y-%m-%dT%H:%M:%S")
+        return str_event_jst_time
 
 def get_schedule_from_google_calendar(service, calendar_id, start):
     """
@@ -227,12 +224,14 @@ def get_schedule_from_google_calendar(service, calendar_id, start):
     if not events:
         return []
     else:
-        events_starttime = change_event_starttime_to_jst(events)
-        return [
-            event["summary"] + "-" + event_starttime
-            for event, event_starttime in zip(events, events_starttime)
-        ]
+        for event in events:
+            event['starttime'] = change_event_starttime_to_jst(event)
 
+            # HPに存在しているかを後の処理でチェックするためのキー。
+            # 存在していれば True に更新される想定。
+            event['hnz_hp_checked'] = False
+
+        return events
 
 def add_event_to_google_calendar(
     event_name, event_category, event_time, event_link, previous_add_event_lists
@@ -259,8 +258,18 @@ def add_event_to_google_calendar(
         event_time_text,
     )
 
+    # 見つかったインデックスを格納する変数
+    found_index = None
+
+    # eventsをイテレートして一致する要素を探す
+    for index, event in enumerate(previous_add_event_lists):
+        if event.get("summary") == event_title and event.get("starttime") == event_start:
+            found_index = index
+            event['hnz_hp_checked'] = True
+            break
+
     if (
-        f"{event_title}-{event_start}" in previous_add_event_lists
+        found_index is not None
     ):  # NOTE:同じ予定がすでに存在する場合はパス
         print("pass:" + event_start + " " + event_title)
         pass
@@ -351,7 +360,7 @@ for _ in range(num_search_month):
 
         event_date_text = "{:0=2}".format(
             int(event_date_text)
-        )  # NOTE;２桁になるように0埋め（ex.0-> 01）
+        )  # NOTE;2桁になるように0埋め（ex.0-> 01）
         start = f"{year}-{month}-{event_date_text}"
         previous_add_event_lists = get_schedule_from_google_calendar(service, calendarId, start)
 
