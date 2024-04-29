@@ -246,7 +246,7 @@ def get_schedule_from_google_calendar(service, calendar_id, year, month):
 
 
 def add_event_to_google_calendar(
-    event_name, event_category, event_time, event_link, previous_add_event_lists
+    event_name, event_category, event_time, event_link
 ):
     """
     Googleカレンダーにイベントを登録します。
@@ -280,7 +280,7 @@ def add_event_to_google_calendar(
             and event.get("startTimeJST") == event_start
         ):
             found_index = index
-            event["hnz_hp_checked"] = True
+            previous_add_event_lists[index].update({'hnz_hp_checked': True}) 
             break
 
     if found_index is not None:  # NOTE:同じ予定がすでに存在する場合はパス
@@ -298,7 +298,6 @@ def add_event_to_google_calendar(
             event_link_text,
             is_date,
         )
-
 
 def build_google_calendar_format(
     calendarId, summary, start, end, active_members, event_link_text, is_date
@@ -340,6 +339,15 @@ def build_google_calendar_format(
         .execute()
     )
 
+def remove_event_from_google_calendar(service, calendar_id):
+
+    for event in previous_add_event_lists:
+        # TODO: 1日だけは 前月で25～28時間表記によって 取得できておらずにFalseになっている可能性があるため暫定で除外
+        if datetime.datetime.fromisoformat(event['startTimeJST']).day == 1:
+            continue
+        if event['hnz_hp_checked'] == False:
+            service.events().delete(calendarId=calendar_id, eventId=event['id']).execute()
+            print(f"del:{event['startTimeJST']} {event['summary']}")
 
 # me = singleton.SingleInstance()
 
@@ -356,6 +364,11 @@ month = current_search_date.month
 
 # -------------------------step2.各日付ごとの情報を取得-------------------------
 for _ in range(num_search_month):
+
+    previous_add_event_lists = get_schedule_from_google_calendar(
+        service, calendarId, year, month
+    )
+
     events_each_date = get_month_schedule_from_hnz_hp(year, "{:0=2}".format(int(month)))
     if events_each_date == None:
         continue
@@ -374,10 +387,6 @@ for _ in range(num_search_month):
             int(event_date_text)
         )  # NOTE;2桁になるように0埋め（ex.0-> 01）
 
-        previous_add_event_lists = get_schedule_from_google_calendar(
-            service, calendarId, year, month
-        )
-
         # step4: カレンダーへ情報を追加
         for event_name, event_category, event_time, event_link in zip(
             events_name, events_category, events_time, events_link
@@ -387,8 +396,10 @@ for _ in range(num_search_month):
                 event_category,
                 event_time,
                 event_link,
-                previous_add_event_lists,
             )
+
+    # HPから削除されていた場合はGoogleカレンダーからも削除
+    remove_event_from_google_calendar(service, calendarId)
 
     # step5:次の月へ
     current_search_date = current_search_date + relativedelta(months=1)
