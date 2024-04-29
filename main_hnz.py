@@ -30,7 +30,9 @@ def build_calendar_api():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            creds = service_account.Credentials.from_service_account_file("credentials_hnz.json", scopes=SCOPES)
+            creds = service_account.Credentials.from_service_account_file(
+                "credentials_hnz.json", scopes=SCOPES
+            )
         with open("token.pickle", "wb") as token:
             pickle.dump(creds, token)
 
@@ -38,27 +40,35 @@ def build_calendar_api():
 
     return service
 
+
 def remove_blank(text):
     """
     テキストから空白を削除し、全角文字を半角に変換します。
     """
     text = text.replace("\n", "")
-    text = re.sub('^ +', '', text)
-    text = re.sub(' +$', '', text)
+    text = re.sub("^ +", "", text)
+    text = re.sub(" +$", "", text)
     text = mojimoji.zen_to_han(text, kana=False)
     return text
+
 
 def search_event_each_date(year, month):
     """
     指定した年と月のイベントを検索します。
     """
-    url = f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
+    url = (
+        f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
+    )
     result = requests.get(url)
     soup = BeautifulSoup(result.content, features="lxml")
 
     # ページの年と月を取得
-    page_year = remove_blank(soup.find("div", {"class": "c-schedule__page_year"}).text).replace('年', '')
-    page_month = remove_blank(soup.find("div", {"class": "c-schedule__page_month"}).text).replace('月', '')
+    page_year = remove_blank(
+        soup.find("div", {"class": "c-schedule__page_year"}).text
+    ).replace("年", "")
+    page_month = remove_blank(
+        soup.find("div", {"class": "c-schedule__page_month"}).text
+    ).replace("月", "")
 
     # 年と月が一致しない場合はエラー
     if int(year) != int(page_year) or int(month) != int(page_month):
@@ -72,6 +82,7 @@ def search_event_each_date(year, month):
     time.sleep(3)
 
     return events_each_date
+
 
 def search_start_and_end_time(event_time_text):
     """
@@ -87,17 +98,21 @@ def search_start_and_end_time(event_time_text):
     end += ":00"
     return start, end
 
+
 def search_event_info(event_each_date):
     """
     各日付のイベント情報を検索します。
     """
-    event_date_text = remove_blank(event_each_date.contents[1].text)[:-1]  # 曜日以外の情報を取得
+    event_date_text = remove_blank(event_each_date.contents[1].text)[
+        :-1
+    ]  # 曜日以外の情報を取得
     events_time = event_each_date.find_all("div", {"class": "c-schedule__time--list"})
     events_name = event_each_date.find_all("p", {"class": "c-schedule__text"})
     events_category = event_each_date.find_all("div", {"class": "p-schedule__head"})
     events_link = event_each_date.find_all("li", {"class": "p-schedule__item"})
 
     return event_date_text, events_time, events_name, events_category, events_link
+
 
 def search_detail_info(event_name, event_category, event_time, event_link):
     """
@@ -110,6 +125,7 @@ def search_detail_info(event_name, event_category, event_time, event_link):
 
     return event_name_text, event_category_text, event_time_text, event_link_text
 
+
 def search_active_member(event_link_text):
     """
     アクティブなメンバーを検索します。
@@ -121,23 +137,26 @@ def search_active_member(event_link_text):
 
         if active_members is None:
             return ""
-        
-        active_members_text = "メンバー:" + ",".join(member.text for member in active_members)
+
+        active_members_text = "メンバー:" + ",".join(
+            member.text for member in active_members
+        )
         time.sleep(3)  # サーバー負荷の解消
     except AttributeError:
         return ""
 
     return active_members_text
 
+
 def over24Hdatetime(year, month, day, times):
     """
     24H以上の時刻をdatetimeに変換する
     """
-    if times.count(':') == 2:
+    if times.count(":") == 2:
         hour, minute = times.split(":")[:-1]
     else:
         # 1900 という表記の時がある
-        times_arr = re.search(r'(\d\d)(\d\d)', times)
+        times_arr = re.search(r"(\d\d)(\d\d)", times)
         if times_arr != None:
             hour = times_arr[1]
             minute = times_arr[2]
@@ -154,9 +173,7 @@ def over24Hdatetime(year, month, day, times):
     return dt.strftime("%Y-%m-%dT%H:%M:%S")
 
 
-def prepare_info_for_calendar(
-    event_name_text, event_category_text, event_time_text
-):
+def prepare_info_for_calendar(event_name_text, event_category_text, event_time_text):
     event_title = f"({event_category_text}){event_name_text}"
     if event_time_text == "":
         event_start = f"{year}-{month}-{event_date_text}"
@@ -196,7 +213,8 @@ def search_events(service, calendar_id, start):
         service.events()
         .list(
             calendarId=calendar_id,
-            timeMin=start + "T00:00:00+09:00",  # NOTE:+09:00とするのが肝。（UTCをJSTへ変換）
+            timeMin=start
+            + "T00:00:00+09:00",  # NOTE:+09:00とするのが肝。（UTCをJSTへ変換）
             timeMax=end + "T23:59:00+09:00",  # NOTE;来月までをサーチ期間に。
         )
         .execute()
@@ -224,8 +242,15 @@ def add_date_schedule(
     ) = search_detail_info(event_name, event_category, event_time, event_link)
 
     # カレンダーに反映させる情報の準備
-    (event_title, event_start, event_end, is_date,) = prepare_info_for_calendar(
-        event_name_text, event_category_text, event_time_text,
+    (
+        event_title,
+        event_start,
+        event_end,
+        is_date,
+    ) = prepare_info_for_calendar(
+        event_name_text,
+        event_category_text,
+        event_time_text,
     )
 
     if (
@@ -237,36 +262,62 @@ def add_date_schedule(
         active_members = search_active_member(event_link_text)
         print("add:" + event_start + " " + event_title)
         add_info_to_calendar(
-            calendarId, event_title, event_start, event_end, active_members, event_link_text, is_date,
+            calendarId,
+            event_title,
+            event_start,
+            event_end,
+            active_members,
+            event_link_text,
+            is_date,
         )
 
 
-def add_info_to_calendar(calendarId, summary, start, end, active_members, event_link_text, is_date):
+def add_info_to_calendar(
+    calendarId, summary, start, end, active_members, event_link_text, is_date
+):
 
     if is_date:
         event = {
             "summary": summary,
             "description": event_link_text + "\n" + active_members,
-            "start": {"date": start, "timeZone": "Japan",},
-            "end": {"date": end, "timeZone": "Japan",},
+            "start": {
+                "date": start,
+                "timeZone": "Japan",
+            },
+            "end": {
+                "date": end,
+                "timeZone": "Japan",
+            },
         }
     else:
         event = {
             "summary": summary,
             "description": event_link_text + "\n" + active_members,
-            "start": {"dateTime": start, "timeZone": "Japan",},
-            "end": {"dateTime": end, "timeZone": "Japan",},
+            "start": {
+                "dateTime": start,
+                "timeZone": "Japan",
+            },
+            "end": {
+                "dateTime": end,
+                "timeZone": "Japan",
+            },
         }
 
-    event = service.events().insert(calendarId=calendarId, body=event,).execute()
+    event = (
+        service.events()
+        .insert(
+            calendarId=calendarId,
+            body=event,
+        )
+        .execute()
+    )
 
-#me = singleton.SingleInstance() 
+
+# me = singleton.SingleInstance()
 
 # -------------------------step1:各種設定-------------------------
 # API系
-calendarId = (
-    os.environ['CALENDAR_ID_HNZ']  # NOTE:自分のカレンダーID
-)
+calendarId = os.environ["CALENDAR_ID_HNZ"]  # NOTE:自分のカレンダーID
 service = build_calendar_api()
 
 # サーチ範囲
