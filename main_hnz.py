@@ -103,12 +103,15 @@ def get_events_from_hnz_hp(event_each_date):
     """
     特定の日のイベントを一括で取得します。
     """
+    event_date_text = remove_blank(event_each_date.contents[1].text)[
+        :-1
+    ]  # 曜日以外の情報を取得
     events_time = event_each_date.find_all("div", {"class": "c-schedule__time--list"})
     events_name = event_each_date.find_all("p", {"class": "c-schedule__text"})
     events_category = event_each_date.find_all("div", {"class": "p-schedule__head"})
     events_link = event_each_date.find_all("li", {"class": "p-schedule__item"})
 
-    return events_time, events_name, events_category, events_link
+    return event_date_text, events_time, events_name, events_category, events_link
 
 
 def get_event_info_from_hnz_hp(event_name, event_category, event_time, event_link):
@@ -198,7 +201,7 @@ def change_event_starttime_to_jst(event):
 
 def get_schedule_from_google_calendar(service, calendar_id, year, month):
     """
-    重複してスケジュールを登録してしまうのを防ぐ目的ですでにGoogleカレンダーに登録されているスケジュールを取得します
+    Googleカレンダーから指定された年月のスケジュールを取得します(重複してスケジュールを登録してしまうのを防ぐ目的)
     """
     timezone='Asia/Tokyo'
 
@@ -347,11 +350,16 @@ for _ in range(num_search_month):
 
         # step3: 特定の日の予定を一括で取得
         (
+            event_date_text,
             events_time,
             events_name,
             events_category,
             events_link,
         ) = get_events_from_hnz_hp(event_each_date)
+
+        event_date_text = "{:0=2}".format(
+            int(event_date_text)
+        )  # NOTE;2桁になるように0埋め（ex.0-> 01）
 
         previous_add_event_lists = get_schedule_from_google_calendar(service, calendarId, year, month)
 
