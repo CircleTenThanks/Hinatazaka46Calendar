@@ -16,7 +16,7 @@ from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
 
-def build_calendar_api():
+def build_google_calendar_api():
     """
     Google Calendar APIを構築します。
     トークンが存在する場合はそれを使用し、存在しない場合は新たに生成します。
@@ -52,9 +52,9 @@ def remove_blank(text):
     return text
 
 
-def search_event_each_date(year, month):
+def get_month_schedule_from_hnz_hp(year, month):
     """
-    指定した年と月のイベントを検索します。
+    指定した月のスケジュールを取得します。
     """
     url = (
         f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
@@ -84,9 +84,9 @@ def search_event_each_date(year, month):
     return events_each_date
 
 
-def search_start_and_end_time(event_time_text):
+def get_time_event_from_event_info(event_time_text):
     """
-    イベントの開始時間と終了時間を検索します。
+    イベントの開始時間と終了時間を取得します。
     """
     # 終了時間が存在するか確認
     has_end = event_time_text[-1] != "~"
@@ -99,9 +99,9 @@ def search_start_and_end_time(event_time_text):
     return start, end
 
 
-def search_event_info(event_each_date):
+def get_events_from_hnz_hp(event_each_date):
     """
-    各日付のイベント情報を検索します。
+    特定の日のイベントを一括で取得します。
     """
     event_date_text = remove_blank(event_each_date.contents[1].text)[
         :-1
@@ -114,9 +114,9 @@ def search_event_info(event_each_date):
     return event_date_text, events_time, events_name, events_category, events_link
 
 
-def search_detail_info(event_name, event_category, event_time, event_link):
+def get_event_info_from_hnz_hp(event_name, event_category, event_time, event_link):
     """
-    イベントの詳細情報を検索します。
+    イベントの詳細情報を取得します。
     """
     event_name_text = remove_blank(event_name.text)
     event_category_text = remove_blank(event_category.contents[1].text)
@@ -126,9 +126,9 @@ def search_detail_info(event_name, event_category, event_time, event_link):
     return event_name_text, event_category_text, event_time_text, event_link_text
 
 
-def search_active_member(event_link_text):
+def get_event_member_from_event_info(event_link_text):
     """
-    アクティブなメンバーを検索します。
+    イベントに登録されているメンバーを取得します。
     """
     try:
         result = requests.get(event_link_text)
@@ -138,14 +138,14 @@ def search_active_member(event_link_text):
         if active_members is None:
             return ""
 
-        active_members_text = "メンバー:" + ",".join(
+        members_text = "メンバー:" + ",".join(
             member.text for member in active_members
         )
         time.sleep(3)  # サーバー負荷の解消
     except AttributeError:
         return ""
 
-    return active_members_text
+    return members_text
 
 
 def over24Hdatetime(year, month, day, times):
@@ -180,7 +180,7 @@ def prepare_info_for_calendar(event_name_text, event_category_text, event_time_t
         event_end = f"{year}-{month}-{event_date_text}"
         is_date = True
     else:
-        start, end = search_start_and_end_time(event_time_text)
+        start, end = get_time_event_from_event_info(event_time_text)
         event_start = over24Hdatetime(year, month, event_date_text, start)
         event_end = over24Hdatetime(year, month, event_date_text, end)
         is_date = False
@@ -202,7 +202,10 @@ def change_event_starttime_to_jst(events):
     return events_starttime
 
 
-def search_events(service, calendar_id, start):
+def get_schedule_from_google_calendar(service, calendar_id, start):
+    """
+    重複してスケジュールを登録してしまうのを防ぐ目的ですでにGoogleカレンダーに登録されているスケジュールを取得します
+    """
 
     end_datetime = datetime.datetime.strptime(start, "%Y-%m-%d") + relativedelta(
         months=1
@@ -231,15 +234,18 @@ def search_events(service, calendar_id, start):
         ]
 
 
-def add_date_schedule(
+def add_event_to_google_calendar(
     event_name, event_category, event_time, event_link, previous_add_event_lists
 ):
+    """
+    Googleカレンダーにイベントを登録します。
+    """
     (
         event_name_text,
         event_category_text,
         event_time_text,
         event_link_text,
-    ) = search_detail_info(event_name, event_category, event_time, event_link)
+    ) = get_event_info_from_hnz_hp(event_name, event_category, event_time, event_link)
 
     # カレンダーに反映させる情報の準備
     (
@@ -259,9 +265,9 @@ def add_date_schedule(
         print("pass:" + event_start + " " + event_title)
         pass
     else:
-        active_members = search_active_member(event_link_text)
+        active_members = get_event_member_from_event_info(event_link_text)
         print("add:" + event_start + " " + event_title)
-        add_info_to_calendar(
+        build_google_calendar_format(
             calendarId,
             event_title,
             event_start,
@@ -272,7 +278,7 @@ def add_date_schedule(
         )
 
 
-def add_info_to_calendar(
+def build_google_calendar_format(
     calendarId, summary, start, end, active_members, event_link_text, is_date
 ):
 
@@ -318,7 +324,7 @@ def add_info_to_calendar(
 # -------------------------step1:各種設定-------------------------
 # API系
 calendarId = os.environ["CALENDAR_ID_HNZ"]  # NOTE:自分のカレンダーID
-service = build_calendar_api()
+service = build_google_calendar_api()
 
 # サーチ範囲
 num_search_month = 3  # NOTE;3ヶ月先の予定までカレンダーに反映
@@ -329,7 +335,7 @@ month = current_search_date.month
 # -------------------------step2.各日付ごとの情報を取得-------------------------
 for _ in range(num_search_month):
     month = "{:0=2}".format(int(month))
-    events_each_date = search_event_each_date(year, month)
+    events_each_date = get_month_schedule_from_hnz_hp(year, month)
     if events_each_date == None:
         continue
     for event_each_date in events_each_date:
@@ -341,19 +347,19 @@ for _ in range(num_search_month):
             events_name,
             events_category,
             events_link,
-        ) = search_event_info(event_each_date)
+        ) = get_events_from_hnz_hp(event_each_date)
 
         event_date_text = "{:0=2}".format(
             int(event_date_text)
         )  # NOTE;２桁になるように0埋め（ex.0-> 01）
         start = f"{year}-{month}-{event_date_text}"
-        previous_add_event_lists = search_events(service, calendarId, start)
+        previous_add_event_lists = get_schedule_from_google_calendar(service, calendarId, start)
 
         # step4: カレンダーへ情報を追加
         for event_name, event_category, event_time, event_link in zip(
             events_name, events_category, events_time, events_link
         ):
-            add_date_schedule(
+            add_event_to_google_calendar(
                 event_name,
                 event_category,
                 event_time,
