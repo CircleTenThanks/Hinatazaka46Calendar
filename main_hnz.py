@@ -138,9 +138,7 @@ def get_event_member_from_event_info(event_link_text):
         if active_members is None:
             return ""
 
-        members_text = "メンバー:" + ",".join(
-            member.text for member in active_members
-        )
+        members_text = "メンバー:" + ",".join(member.text for member in active_members)
         time.sleep(3)  # サーバー負荷の解消
     except AttributeError:
         return ""
@@ -174,10 +172,13 @@ def over24Hdatetime(year, month, day, times):
 
 
 def prepare_info_for_calendar(event_name_text, event_category_text, event_time_text):
+
+    month_text = "{:0=2}".format(int(month))
+
     event_title = f"({event_category_text}){event_name_text}"
     if event_time_text == "":
-        event_start = f"{year}-{month}-{event_date_text}"
-        event_end = f"{year}-{month}-{event_date_text}"
+        event_start = f"{year}-{month_text}-{event_date_text}"
+        event_end = f"{year}-{month_text}-{event_date_text}"
         is_date = True
     else:
         start, end = get_time_event_from_event_info(event_time_text)
@@ -199,25 +200,34 @@ def change_event_starttime_to_jst(event):
         str_event_jst_time = event_jst_time.strftime("%Y-%m-%dT%H:%M:%S")
         return str_event_jst_time
 
+
 def get_schedule_from_google_calendar(service, calendar_id, year, month):
     """
     Googleカレンダーから指定された年月のスケジュールを取得します(重複してスケジュールを登録してしまうのを防ぐ目的)
     """
-    timezone='Asia/Tokyo'
+    timezone = "Asia/Tokyo"
 
     # JSTタイムゾーンでの開始日時と終了日時を設定します
-    start_time = datetime.datetime(year, month, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=9)))
-    end_time = datetime.datetime(year, month + 1, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=9)))
+    start_time = datetime.datetime(
+        year, month, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
+    )
+    end_time = datetime.datetime(
+        year, month + 1, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
+    )
 
     # カレンダーのイベントを取得します
-    events_result = service.events().list(
-        calendarId=calendar_id,
-        timeMin=start_time.isoformat(),
-        timeMax=end_time.isoformat(),
-        timeZone=timezone,
-        singleEvents=True,
-        orderBy='startTime'
-    ).execute()
+    events_result = (
+        service.events()
+        .list(
+            calendarId=calendar_id,
+            timeMin=start_time.isoformat(),
+            timeMax=end_time.isoformat(),
+            timeZone=timezone,
+            singleEvents=True,
+            orderBy="startTime",
+        )
+        .execute()
+    )
 
     events = events_result.get("items", [])
 
@@ -225,13 +235,14 @@ def get_schedule_from_google_calendar(service, calendar_id, year, month):
         return []
     else:
         for event in events:
-            event['startTimeJST'] = change_event_starttime_to_jst(event)
+            event["startTimeJST"] = change_event_starttime_to_jst(event)
 
             # HPに存在しているかを後の処理でチェックするためのキー。
             # 存在していれば True に更新される想定。
-            event['hnz_hp_checked'] = False
+            event["hnz_hp_checked"] = False
 
         return events
+
 
 def add_event_to_google_calendar(
     event_name, event_category, event_time, event_link, previous_add_event_lists
@@ -263,14 +274,15 @@ def add_event_to_google_calendar(
 
     # eventsをイテレートして一致する要素を探す
     for index, event in enumerate(previous_add_event_lists):
-        if event.get("summary") == event_title and event.get("startTimeJST") == event_start:
+        if (
+            event.get("summary") == event_title
+            and event.get("startTimeJST") == event_start
+        ):
             found_index = index
-            event['hnz_hp_checked'] = True
+            event["hnz_hp_checked"] = True
             break
 
-    if (
-        found_index is not None
-    ):  # NOTE:同じ予定がすでに存在する場合はパス
+    if found_index is not None:  # NOTE:同じ予定がすでに存在する場合はパス
         print("pass:" + event_start + " " + event_title)
         pass
     else:
@@ -361,7 +373,9 @@ for _ in range(num_search_month):
             int(event_date_text)
         )  # NOTE;2桁になるように0埋め（ex.0-> 01）
 
-        previous_add_event_lists = get_schedule_from_google_calendar(service, calendarId, year, month)
+        previous_add_event_lists = get_schedule_from_google_calendar(
+            service, calendarId, year, month
+        )
 
         # step4: カレンダーへ情報を追加
         for event_name, event_category, event_time, event_link in zip(
