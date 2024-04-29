@@ -211,8 +211,9 @@ def get_schedule_from_google_calendar(service, calendar_id, year, month):
     start_time = datetime.datetime(
         year, month, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
     )
+    # 25時～28時表記になっていた場合を考慮して翌月の4時までを取得対象とする
     end_time = datetime.datetime(
-        year, month + 1, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
+        year, month + 1, 1, 4, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
     )
 
     # カレンダーのイベントを取得します
