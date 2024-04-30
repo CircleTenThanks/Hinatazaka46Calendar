@@ -5,6 +5,12 @@ from web_scraping import get_time_event_from_event_info
 def remove_blank(text):
     """
     テキストから空白を削除し、全角文字を半角に変換します。
+    
+    Args:
+        text (str): 変換するテキスト。
+        
+    Returns:
+        str: 変換後のテキスト。
     """
     text = text.replace("\n", "").strip()
     text = mojimoji.zen_to_han(text, kana=False)
@@ -14,6 +20,15 @@ def remove_blank(text):
 def get_event_info_from_hnz_hp(event_name, event_category, event_time, event_link):
     """
     イベントの詳細情報を取得します。
+    
+    Args:
+        event_name (bs4.element.Tag): イベント名を含むHTMLタグ。
+        event_category (bs4.element.Tag): イベントカテゴリを含むHTMLタグ。
+        event_time (bs4.element.Tag): イベント時間を含むHTMLタグ。
+        event_link (bs4.element.Tag): イベントリンクを含むHTMLタグ。
+        
+    Returns:
+        tuple: イベント名、カテゴリ、時間、リンクのテキスト情報。
     """
     event_name_text = remove_blank(event_name.text)
     event_category_text = remove_blank(event_category.contents[1].text)
@@ -26,6 +41,12 @@ def get_event_info_from_hnz_hp(event_name, event_category, event_time, event_lin
 def get_event_member_from_event_info(event_link_text):
     """
     イベントに登録されているメンバーを取得します。
+    
+    Args:
+        event_link_text (str): イベントの詳細ページのURL。
+        
+    Returns:
+        str: 取得したメンバーのテキスト情報。メンバーがいない場合は空文字列を返します。
     """
     try:
         result = requests.get(event_link_text)
@@ -36,7 +57,7 @@ def get_event_member_from_event_info(event_link_text):
             return ""
 
         members_text = "メンバー:" + ",".join(member.text for member in active_members)
-        time.sleep(3)  # サーバー負荷の解消
+        time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機
     except AttributeError:
         return ""
 
@@ -48,6 +69,17 @@ def prepare_info_for_calendar(
 ):
     """
     Googleカレンダーに登録する情報を整形します。
+    
+    Args:
+        year (int): イベントの年。
+        month (int): イベントの月。
+        event_name_text (str): イベント名。
+        event_category_text (str): イベントカテゴリ。
+        event_time_text (str): イベント時間。
+        event_date_text (str): イベント日。
+        
+    Returns:
+        tuple: イベントタイトル、開始日時、終了日時、日付のみかどうかのフラグ。
     """
     month_text = "{:0=2}".format(int(month))
 
@@ -66,7 +98,16 @@ def prepare_info_for_calendar(
 
 def over24Hdatetime(year, month, day, times):
     """
-    24H以上の時刻をdatetimeに変換する
+    24H以上の時刻をdatetimeに変換する。
+    
+    Args:
+        year (int): 年。
+        month (int): 月。
+        day (int): 日。
+        times (str): 時刻文字列。
+        
+    Returns:
+        str: ISO 8601形式の日時文字列。
     """
     if times.count(":") == 2:
         hour, minute = times.split(":")[:-1]

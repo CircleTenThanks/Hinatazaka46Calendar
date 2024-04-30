@@ -4,7 +4,12 @@ import text_processing
 def fetch_url_content(year, month):
     """
     指定された年月のURLからコンテンツを取得します。
+    
+    Args:
+        year (str): 取得するコンテンツの年。
+        month (str): 取得するコンテンツの月。
     """
+    # URLを組み立ててリクエストを送信し、BeautifulSoupオブジェクトを返します。
     url = f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
     response = requests.get(url)
     return BeautifulSoup(response.content, features="lxml")
@@ -12,7 +17,13 @@ def fetch_url_content(year, month):
 def validate_date(soup, year, month):
     """
     ページの年と月が指定された年月と一致するか検証します。
+    
+    Args:
+        soup (BeautifulSoup): 解析するHTMLのBeautifulSoupオブジェクト。
+        year (str): 検証する年。
+        month (str): 検証する月。
     """
+    # ページから年と月を抽出し、指定された年月と一致するか確認します。
     page_year = text_processing.remove_blank(
         soup.find("div", {"class": "c-schedule__page_year"}).text
     ).replace("年", "")
@@ -28,19 +39,29 @@ def validate_date(soup, year, month):
 def get_month_schedule_from_hnz_hp(year, month):
     """
     指定した月のスケジュールを日向坂46公式HPから取得します。
+    
+    Args:
+        year (str): スケジュールを取得する年。
+        month (str): スケジュールを取得する月。
     """
+    # URLからコンテンツを取得し、日付の検証を行います。
     soup = fetch_url_content(year, month)
     if not validate_date(soup, year, month):
         return
 
+    # スケジュール情報を含むHTML要素を全て取得します。
     events_each_date = soup.find_all("div", {"class": "p-schedule__list-group"})
-    time.sleep(3)  # サーバーへの負荷を解消するために一時停止
+    time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機します。
     return events_each_date
 
 def get_events_from_hnz_hp(event_each_date):
     """
     特定の日のイベントを一括で日向坂46公式HPから取得します。
+    
+    Args:
+        event_each_date (bs4.element.Tag): 特定の日に関するイベント情報を含むHTMLタグ。
     """
+    # 特定の日付とその日のイベント情報を抽出します。
     event_date_text = text_processing.remove_blank(event_each_date.contents[1].text)[:-1]
     events_time = event_each_date.find_all("div", {"class": "c-schedule__time--list"})
     events_name = event_each_date.find_all("p", {"class": "c-schedule__text"})
@@ -52,7 +73,11 @@ def get_events_from_hnz_hp(event_each_date):
 def get_time_event_from_event_info(event_time_text):
     """
     イベントの開始時間と終了時間を取得します。
+    
+    Args:
+        event_time_text (str): イベントの時間を表すテキスト。
     """
+    # イベントの時間テキストから開始時間と終了時間を抽出します。
     has_end = event_time_text[-1] != "~"
     start, end = (event_time_text.split("~") + [""])[:2]
     start += ":00"

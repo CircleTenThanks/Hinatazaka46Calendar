@@ -9,15 +9,15 @@ from web_scraping import get_month_schedule_from_hnz_hp, get_events_from_hnz_hp
 
 
 def main():
-    # Google Calendar API を構築
+    # Google Calendar APIのインスタンスを生成します。
     service = build_google_calendar_api()
 
-    # カレンダーIDなどの設定
+    # 環境変数からカレンダーIDを取得します。
     calendar_id = os.environ["CALENDAR_ID_HNZ"]
     num_search_month = 3
     current_search_date = datetime.datetime.now()
 
-    # 3ヶ月先の予定までカレンダーに反映
+    # 指定された月数分のスケジュールをカレンダーに反映します。
     for _ in range(num_search_month):
         year = current_search_date.year
         month = current_search_date.month
@@ -25,7 +25,7 @@ def main():
             service, calendar_id, year, month
         )
 
-        # 日向坂46公式HPからスケジュールを取得
+        # 日向坂46公式ホームページからその月のスケジュールを取得します。
         events_each_date = get_month_schedule_from_hnz_hp(
             year, "{:02}".format(month)
         )
@@ -33,13 +33,13 @@ def main():
             continue
 
         for event_each_date in events_each_date:
-            # 各日のイベントを取得
+            # 特定の日に予定されているイベントの詳細を取得します。
             event_date_text, events_time, events_name, events_category, events_link = (
                 get_events_from_hnz_hp(event_each_date)
             )
             event_date_text = "{:02}".format(int(event_date_text))
 
-            # カレンダーにイベントを追加
+            # 取得したイベントをGoogleカレンダーに追加します。
             for event_name, event_category, event_time, event_link in zip(
                 events_name, events_category, events_time, events_link
             ):
@@ -56,12 +56,12 @@ def main():
                     previous_add_event_lists,
                 )
 
-        # HPから削除されていた場合はGoogleカレンダーからも削除
+        # Googleカレンダーから削除されたイベントを削除します。
         remove_event_from_google_calendar(
             service, calendar_id, previous_add_event_lists
         )
 
-        # 次の月へ
+        # 次の月のスケジュール取得のために日付を更新します。
         current_search_date += relativedelta(months=1)
 
 
