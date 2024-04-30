@@ -342,8 +342,9 @@ def build_google_calendar_format(
 def remove_event_from_google_calendar(service, calendar_id):
 
     for event in previous_add_event_lists:
-        # TODO: 1日だけは 前月で25～28時間表記によって 取得できておらずにFalseになっている可能性があるため暫定で除外
-        if datetime.datetime.fromisoformat(event['startTimeJST']).day == 1:
+        # get_schedule_from_google_calendar では 25時～28時表記になっていた場合を考慮して翌月の4時までを取得対象としているため
+        if (datetime.datetime.fromisoformat(event['startTimeJST']).day == 1 and
+            datetime.datetime.fromisoformat(event['startTimeJST']).day <= 4):
             continue
         if event['hnz_hp_checked'] == False:
             service.events().delete(calendarId=calendar_id, eventId=event['id']).execute()
