@@ -1,5 +1,4 @@
 from dependencies import os, datetime, relativedelta
-from dateutil.relativedelta import relativedelta
 from google_calendar import (
     build_google_calendar_api,
     get_schedule_from_google_calendar,
@@ -44,16 +43,16 @@ def main():
                 events_name, events_category, events_time, events_link
             ):
                 add_event_to_google_calendar(
+                    service,
+                    calendar_id,
+                    year,
+                    month,
+                    event_date_text,
                     event_name,
                     event_category,
                     event_time,
                     event_link,
-                    month,
-                    event_date_text,
                     previous_add_event_lists,
-                    calendar_id,
-                    service,
-                    year,
                 )
 
         # HPから削除されていた場合はGoogleカレンダーからも削除
@@ -62,7 +61,7 @@ def main():
         )
 
         # 次の月へ
-        current_search_date = current_search_date + relativedelta(months=1)
+        current_search_date += relativedelta(months=1)
         year = current_search_date.year
         month = current_search_date.month
 

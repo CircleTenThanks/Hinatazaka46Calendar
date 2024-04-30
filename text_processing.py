@@ -6,9 +6,7 @@ def remove_blank(text):
     """
     テキストから空白を削除し、全角文字を半角に変換します。
     """
-    text = text.replace("\n", "")
-    text = re.sub("^ +", "", text)
-    text = re.sub(" +$", "", text)
+    text = text.replace("\n", "").strip()
     text = mojimoji.zen_to_han(text, kana=False)
     return text
 
@@ -34,7 +32,7 @@ def get_event_member_from_event_info(event_link_text):
         soup = BeautifulSoup(result.content, features="lxml")
         active_members = soup.find("div", {"class": "c-article__tag"}).findAll("a")
 
-        if active_members is None:
+        if not active_members:
             return ""
 
         members_text = "メンバー:" + ",".join(member.text for member in active_members)
@@ -54,7 +52,7 @@ def prepare_info_for_calendar(
     month_text = "{:0=2}".format(int(month))
 
     event_title = f"({event_category_text}){event_name_text}"
-    if event_time_text == "":
+    if not event_time_text:
         event_start = f"{year}-{month_text}-{event_date_text}"
         event_end = f"{year}-{month_text}-{event_date_text}"
         is_date = True

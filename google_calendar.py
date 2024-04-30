@@ -76,16 +76,16 @@ def get_schedule_from_google_calendar(service, calendar_id, year, month):
 
 
 def add_event_to_google_calendar(
+    service,
+    calendar_id,
+    year,
+    month,
+    event_date_text,
     event_name,
     event_category,
     event_time,
     event_link,
-    month,
-    event_date_text,
     previous_add_event_lists,
-    calendarId,
-    service,
-    year,
 ):
     """
     Googleカレンダーにイベントを登録します。
@@ -132,7 +132,7 @@ def add_event_to_google_calendar(
         active_members = get_event_member_from_event_info(event_link_text)
         print("add:" + event_start + " " + event_title)
         build_google_calendar_format(
-            calendarId,
+            calendar_id,
             event_title,
             event_start,
             event_end,
@@ -144,7 +144,7 @@ def add_event_to_google_calendar(
 
 
 def build_google_calendar_format(
-    calendarId, summary, start, end, active_members, event_link_text, is_date, service
+    calendar_id, summary, start, end, active_members, event_link_text, is_date, service
 ):
     """
     Googleカレンダーに登録する形式にデータを整形します。
@@ -179,7 +179,7 @@ def build_google_calendar_format(
     event = (
         service.events()
         .insert(
-            calendarId=calendarId,
+            calendarId=calendar_id,
             body=event,
         )
         .execute()
