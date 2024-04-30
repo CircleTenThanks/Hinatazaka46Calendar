@@ -1,6 +1,12 @@
 from dependencies import re, mojimoji, datetime, requests, BeautifulSoup, time
 from web_scraping import get_time_event_from_event_info
-
+"""
+このモジュールは、テキスト処理機能を提供します。主な機能は以下の通りです：
+- テキストからの空白削除
+- 全角文字の半角文字への変換
+- ウェブスクレイピングで取得したHTMLからテキスト情報の抽出と整形
+これにより、他のモジュールで扱いやすい形式のデータを提供します。
+"""
 
 def remove_blank(text):
     """

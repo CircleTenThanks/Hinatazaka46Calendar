@@ -4,7 +4,14 @@ from text_processing import (
     prepare_info_for_calendar,
     get_event_member_from_event_info,
 )
-
+"""
+このモジュールは、Google Calendar APIを使用してカレンダーの操作を行うための関数を提供します。
+主な機能は以下の通りです：
+- Google Calendar APIのセットアップ
+- 指定されたカレンダーから特定の月のスケジュールを取得
+- イベントの追加、更新、削除
+これにより、外部のスケジュール情報をGoogleカレンダーに統合し、管理を容易にします。
+"""
 
 def build_google_calendar_api():
     """

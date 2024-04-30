@@ -1,5 +1,11 @@
 from dependencies import time, requests, BeautifulSoup
 import text_processing
+"""
+このモジュールは、ウェブスクレイピングを行い、日向坂46の公式ホームページからイベントスケジュールを取得するための関数を提供します。
+主な機能は以下の通りです：
+- 日向坂46の公式ホームページからイベントスケジュールを取得
+これにより、ユーザーは日向坂46の最新のスケジュールを常に確認することができます。
+"""
 
 def fetch_url_content(year, month):
     """
@@ -83,3 +89,4 @@ def get_time_event_from_event_info(event_time_text):
     start += ":00"
     end += ":00" if has_end else start
     return start, end
+

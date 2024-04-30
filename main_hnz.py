@@ -6,6 +6,16 @@ from google_calendar import (
     remove_event_from_google_calendar,
 )
 from web_scraping import get_month_schedule_from_hnz_hp, get_events_from_hnz_hp
+"""
+このモジュールは、日向坂46の公式ホームページからイベントスケジュールを取得し、Googleカレンダーに自動で追加する機能を提供します。
+主な機能は以下の通りです：
+- Google Calendar APIを使用してカレンダーのインスタンスを生成します。
+- 日向坂46の公式ホームページから指定された月のスケジュールを取得します。
+- 取得したスケジュールをGoogleカレンダーに追加します。
+- Googleカレンダーから削除されたイベントを削除します。
+
+これにより、ユーザーは日向坂46の最新のスケジュールを常にカレンダー上で確認することができます。
+"""
 
 
 def main():
