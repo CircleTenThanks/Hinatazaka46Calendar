@@ -3,7 +3,7 @@
 ## 紹介ページ
 https://circletenthanks.github.io/Hinatazaka46Calendar/  
 
-[こちら](https://qiita.com/ddn/items/42def5fa721e531eecdb)紹介されているGoogleカレンダーの共有リンクが2023/02頃から稼働しておらず、勝手ながら本リポジトリを立ち上げました。
+[こちら](https://qiita.com/ddn/items/42def5fa721e531eecdb)で紹介されているGoogleカレンダーの共有リンクが2023/02頃から稼働しておらず、勝手ながら本リポジトリを立ち上げました。
 
 ## 運用状況
 
