@@ -6,6 +6,9 @@ image: /img/overture.jpg
 plugins:
   - jekyll-seo-tag
 url: https://github.com/CircleTenThanks
+twitter:
+  username: CircleTenThanks
+  card: summary_large_image
 social:
   name:  CircleTenThanks 
   links:
