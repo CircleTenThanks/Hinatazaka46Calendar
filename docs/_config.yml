@@ -1,7 +1,7 @@
 layout: default
 title: 日向坂46 Googleカレンダー
 description: 日向坂46のスケジュールをGoogleカレンダーへ自動追加し、充実したおひさまライフをサポートします。
-image: ../img/overture.jpg
+image: /img/overture.jpg
 lang: ja_JP
 plugins:
   - jekyll-seo-tag
