@@ -55,9 +55,15 @@ def get_schedule_from_google_calendar(service, calendar_id, year, month):
         year, month, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
     )
     # 翌月の4時までを取得対象とすることで、25時～28時表記のイベントもカバーします
-    end_time = datetime.datetime(
-        year, month + 1, 1, 4, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
-    )
+    # 12月の場合、翌年の1月を指定する必要があります
+    if month == 12:
+        end_time = datetime.datetime(
+            year + 1, 1, 1, 4, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
+        )
+    else:
+        end_time = datetime.datetime(
+            year, month + 1, 1, 4, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
+        )
 
     # カレンダーのイベントを取得します
     events_result = (
