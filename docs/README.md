@@ -25,5 +25,5 @@
 
 要望などがあれば。
 
-* [Github](https://github.com/CircleTenThanks/Hinatazaka46Calendar/issues) > New issue
+* [GitHub](https://github.com/CircleTenThanks/Hinatazaka46Calendar/issues) > New issue
 * [X](https://x.com/CircleTenThanks) > メッセージ or メンション付きでポスト
