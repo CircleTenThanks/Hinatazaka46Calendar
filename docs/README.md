@@ -25,5 +25,5 @@
 
 要望などがあれば。
 
-* https://github.com/CircleTenThanks/Hinatazaka46Calendar/issues
-* https://twitter.com/CircleTenThanks
+* [Github](https://github.com/CircleTenThanks/Hinatazaka46Calendar/issues) 
+* [X](https://x.com/CircleTenThanks)
