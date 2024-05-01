@@ -15,7 +15,7 @@ social:
     - https://www.youtube.com/@CircleTenThanks
     - https://twitter.com/CircleTenThanks
 defaults:
-  – scope:
+  - scope:
       path: ""
     values:
         image: img/overture.jpg
