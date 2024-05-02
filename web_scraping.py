@@ -63,8 +63,14 @@ def get_month_schedule_from_hnz_hp(year, month, content_type="media"):
     if not validate_date(soup, year, month):
         return
 
-    # スケジュール情報を含むHTML要素を全て取得します。
-    events_each_date = soup.find_all("div", {"class": "p-schedule__list-group"})
+    # content_typeに応じてスケジュール情報を含むHTML要素を取得します。
+    if content_type == "media":
+        events_each_date = soup.find_all("div", {"class": "p-schedule__list-group"})
+    elif content_type == "news":
+        events_each_date = soup.find_all("div", {"class": "p-news__list"})
+    else:
+        raise ValueError("Invalid content type specified. Use 'media' or 'news'.")
+
     time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機します。
     return events_each_date
 
