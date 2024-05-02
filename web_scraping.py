@@ -64,8 +64,13 @@ def get_month_content_from_hnz_hp(year, month, content_type="schedule"):
     if not validate_date(soup, year, month):
         return
 
-    # content_typeに応じて情報を含むHTML要素を取得します。
-    content_each_date = soup.find_all("div", {"class": f"p-{content_type}__list"})
+    # content_typeに応じてスケジュール情報を含むHTML要素を取得します。
+    if content_type == "schedule":
+        content_each_date = soup.find_all("div", {"class": "p-schedule__list-group"})
+    elif content_type == "news":
+        content_each_date = soup.find_all("div", {"class": "p-news__list"})
+    else:
+        raise ValueError("Invalid content type specified. Use 'schedule' or 'news'.")
 
     time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機します。
     return content_each_date
@@ -80,18 +85,18 @@ def get_contents_from_hnz_hp(content_each_date, content_type="schedule"):
     """
     if content_type == "schedule":
         # 特定の日付とその日のイベント情報を抽出します。
-        content_date_text = text_processing.remove_blank(event_each_date.contents[1].text)[:-1]
-        contents_time = event_each_date.find_all("div", {"class": "c-schedule__time--list"})
-        contents_name = event_each_date.find_all("p", {"class": "c-schedule__text"})
-        contents_category = event_each_date.find_all("div", {"class": "p-schedule__head"})
-        contents_link = event_each_date.find_all("li", {"class": "p-schedule__item"})
+        content_date_text = text_processing.remove_blank(content_each_date.contents[1].text)[:-1]
+        contents_time = content_each_date.find_all("div", {"class": "c-schedule__time--list"})
+        contents_name = content_each_date.find_all("p", {"class": "c-schedule__text"})
+        contents_category = content_each_date.find_all("div", {"class": "p-schedule__head"})
+        contents_link = content_each_date.find_all("li", {"class": "p-schedule__item"})
     elif content_type == "news":
         # ニュースタイプの情報を抽出します。
-        content_date_text = text_processing.remove_blank(event_each_date.find("div", {"class": "c-news__date"}).text)
+        content_date_text = text_processing.remove_blank(content_each_date.find("div", {"class": "c-news__date"}).text)
         contents_time = None
-        contents_name = event_each_date.find_all("p", {"class": "c-news__text"})
-        contents_category = event_each_date.find_all("div", {"class": "c-news__category"})
-        contents_link = event_each_date.find_all("li", {"class": "p-news__item"})
+        contents_name = content_each_date.find_all("p", {"class": "c-news__text"})
+        contents_category = content_each_date.find_all("div", {"class": "c-news__category"})
+        contents_link = content_each_date.find_all("li", {"class": "p-news__item"})
     else:
         raise ValueError("Invalid content type specified. Use 'schedule' or 'news'.")
 

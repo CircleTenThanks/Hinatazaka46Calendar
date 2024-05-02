@@ -23,7 +23,8 @@ def main():
     service = build_google_calendar_api()
 
     # 環境変数からカレンダーIDを取得します。
-    calendar_id = os.environ["CALENDAR_ID_HNZ"]
+    calendar_id_schedule = os.environ["CALENDAR_ID_HNZ_SCHEDULE"]
+    calendar_id_news = os.environ["CALENDAR_ID_HNZ_NEWS"]
     num_search_month = 3
     current_search_date = datetime.datetime.now()
 
@@ -31,8 +32,11 @@ def main():
     for _ in range(num_search_month):
         year = current_search_date.year
         month = current_search_date.month
-        previous_add_event_lists = get_schedule_from_google_calendar(
-            service, calendar_id, year, month
+        previous_add_event_lists_schedule = get_schedule_from_google_calendar(
+            service, calendar_id_schedule, year, month
+        )
+        previous_add_event_lists_news = get_schedule_from_google_calendar(
+            service, calendar_id_news, year, month
         )
 
         # 日向坂46公式ホームページからその月のスケジュールを取得します。
@@ -53,6 +57,7 @@ def main():
             for event_name, event_category, event_time, event_link in zip(
                 events_name, events_category, events_time, events_link
             ):
+                calendar_id = calendar_id_schedule
                 add_event_to_google_calendar(
                     service,
                     calendar_id,
@@ -63,12 +68,15 @@ def main():
                     event_category,
                     event_time,
                     event_link,
-                    previous_add_event_lists,
+                    previous_add_event_lists_schedule,
                 )
 
-        # Googleカレンダーから削除されたイベントを削除します。
+        # 日向坂46公式ホームページから削除されたイベントをGoogleカレンダーからも削除します。
         remove_event_from_google_calendar(
-            service, calendar_id, previous_add_event_lists
+            service, calendar_id_schedule, previous_add_event_lists_schedule
+        )
+        remove_event_from_google_calendar(
+            service, calendar_id_news, previous_add_event_lists_news
         )
 
         # 次の月のスケジュール取得のために日付を更新します。
