@@ -20,7 +20,7 @@ def fetch_url_content(year, month, content_type="schedule"):
     if content_type == "schedule":
         url = f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
     elif content_type == "news":
-        url = f"https://www.hinatazaka46.com/s/official/news/list?ima=0000&dy={year}{month}"
+        url = f"https://www.hinatazaka46.com/s/official/news/list?ima=0000&cd=event&dy={year}{month}"
     else:
         raise ValueError("Invalid content type specified. Use 'schedule' or 'news'.")
     
@@ -150,6 +150,14 @@ def get_event_description(event_link_text, content_type="schedule"):
             result = requests.get(event_link_text)
             soup = BeautifulSoup(result.content, features="lxml")
             description = soup.find("div", {"class": "p-article__text"}).text
+
+            # 文字列から日時を抽出して表示
+            try:
+                extracted_datetimes = text_processing.extract_datetimes(description, "日程")
+                for dt in extracted_datetimes:
+                    print(f"Datetime: {dt}")
+            except ValueError as e:
+                print(f"Error: {e}")
 
             if not description:
                 return ""
