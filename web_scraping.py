@@ -126,7 +126,7 @@ def get_time_content_from_content_info(content_time_text):
     end += ":00" if has_end else start
     return start, end
 
-def get_event_member_from_event_info(event_link_text):
+def get_event_member_from_event_info(event_link_text, content_type="schedule"):
     """
     イベントに登録されているメンバーを取得します。
     
@@ -137,31 +137,26 @@ def get_event_member_from_event_info(event_link_text):
         str: 取得したメンバーのテキスト情報。メンバーがいない場合は空文字列を返します。
     """
     try:
-        result = requests.get(event_link_text)
-        soup = BeautifulSoup(result.content, features="lxml")
-        active_members = soup.find("div", {"class": "c-article__tag"}).findAll("a")
+        if content_type == "schedule":
+            result = requests.get(event_link_text)
+            soup = BeautifulSoup(result.content, features="lxml")
+            active_members = soup.find("div", {"class": "c-article__tag"}).findAll("a")
 
-        if not active_members:
-            return ""
+            if not active_members:
+                return ""
 
-        members_text = "メンバー:" + ",".join(member.text for member in active_members)
-        time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機
+            description = "メンバー:" + ",".join(member.text for member in active_members)
+        elif content_type == "news":
+            result = requests.get(event_link_text)
+            soup = BeautifulSoup(result.content, features="lxml")
+            description = soup.find("div", {"class": "p-article__text"}).text
+
+            if not description:
+                return ""
+        else:
+            raise ValueError("Invalid content type specified. Use 'schedule' or 'news'.")
     except AttributeError:
         return ""
-
-    return members_text
-
-def get_event_description(event_link_text):
-    try:
-        result = requests.get(event_link_text)
-        soup = BeautifulSoup(result.content, features="lxml")
-        description = soup.find("div", {"class": "p-article__text"})
-
-        if not description:
-            return ""
-
-        time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機
-    except AttributeError:
-        return ""
-
+    
+    time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機
     return description
