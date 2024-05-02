@@ -3,7 +3,7 @@ from text_processing import (
     get_event_info_from_hnz_hp,
     prepare_info_for_calendar,
 )
-from web_scraping import get_event_member_from_event_info
+from web_scraping import get_event_description
 """
 このモジュールは、Google Calendar APIを使用してカレンダーの操作を行うための関数を提供します。
 主な機能は以下の通りです：
@@ -105,6 +105,7 @@ def add_event_to_google_calendar(
     event_time,
     event_link,
     previous_add_event_lists,
+    content_type,
 ):
     """
     Googleカレンダーにイベントを登録します。
@@ -159,7 +160,7 @@ def add_event_to_google_calendar(
         print("pass:" + event_start + " " + event_title)
         pass
     else:
-        event_description = get_event_member_from_event_info(event_link_text)
+        event_description = get_event_description(event_link_text, content_type)
         print("add:" + event_start + " " + event_title)
         build_google_calendar_format(
             calendar_id,
@@ -173,7 +174,7 @@ def add_event_to_google_calendar(
         )
 
 def build_google_calendar_format(
-    calendar_id, summary, start, end, active_members, event_link_text, is_date, service
+    calendar_id, summary, start, end, event_description, event_link_text, is_date, service
 ):
     """
     Googleカレンダーに登録する形式にデータを整形します。
@@ -182,7 +183,7 @@ def build_google_calendar_format(
         summary: イベントの概要
         start: イベントの開始時間
         end: イベントの終了時間
-        active_members: イベントに参加するメンバー
+        event_description: イベントに参加するメンバー
         event_link_text: イベントのリンクテキスト
         is_date: 日付のみかどうかのフラグ
         service: Google Calendar APIのサービスインスタンス
@@ -190,7 +191,7 @@ def build_google_calendar_format(
     if is_date:
         event = {
             "summary": summary,
-            "description": event_link_text + "\n" + active_members,
+            "description": event_link_text + "\n" + event_description,
             "start": {
                 "date": start,
                 "timeZone": "Japan",
@@ -203,7 +204,7 @@ def build_google_calendar_format(
     else:
         event = {
             "summary": summary,
-            "description": event_link_text + "\n" + active_members,
+            "description": event_link_text + "\n" + event_description,
             "start": {
                 "dateTime": start,
                 "timeZone": "Japan",

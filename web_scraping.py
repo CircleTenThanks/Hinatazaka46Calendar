@@ -126,7 +126,7 @@ def get_time_content_from_content_info(content_time_text):
     end += ":00" if has_end else start
     return start, end
 
-def get_event_member_from_event_info(event_link_text, content_type="schedule"):
+def get_event_description(event_link_text, content_type="schedule"):
     """
     イベントに登録されているメンバーを取得します。
     

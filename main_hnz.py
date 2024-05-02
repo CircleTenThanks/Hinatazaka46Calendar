@@ -70,6 +70,7 @@ def main():
                             event_time,
                             event_link,
                             previous_add_event_lists_schedule,
+                            content_type="schedule",
                         )
 
         # ニュース情報の処理
@@ -95,6 +96,7 @@ def main():
                             None,
                             event_link,
                             previous_add_event_lists_news,
+                            content_type="news",
                         )
 
         # 日向坂46公式ホームページから削除されたイベントをGoogleカレンダーからも削除します。
