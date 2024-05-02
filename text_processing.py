@@ -1,5 +1,5 @@
 from dependencies import re, mojimoji, datetime, requests, BeautifulSoup, time
-from web_scraping import get_time_event_from_event_info
+from web_scraping import get_time_content_from_content_info
 """
 このモジュールは、テキスト処理機能を提供します。主な機能は以下の通りです：
 - テキストからの空白削除
@@ -95,7 +95,7 @@ def prepare_info_for_calendar(
         event_end = f"{year}-{month_text}-{event_date_text}"
         is_date = True
     else:
-        start, end = get_time_event_from_event_info(event_time_text)
+        start, end = get_time_content_from_content_info(event_time_text)
         event_start = over24Hdatetime(year, month, event_date_text, start)
         event_end = over24Hdatetime(year, month, event_date_text, end)
         is_date = False

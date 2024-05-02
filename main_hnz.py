@@ -5,7 +5,7 @@ from google_calendar import (
     add_event_to_google_calendar,
     remove_event_from_google_calendar,
 )
-from web_scraping import get_month_schedule_from_hnz_hp, get_events_from_hnz_hp
+from web_scraping import get_month_content_from_hnz_hp, get_contents_from_hnz_hp
 """
 このモジュールは、日向坂46の公式ホームページからイベントスケジュールを取得し、Googleカレンダーに自動で追加する機能を提供します。
 主な機能は以下の通りです：
@@ -36,7 +36,7 @@ def main():
         )
 
         # 日向坂46公式ホームページからその月のスケジュールを取得します。
-        events_each_date = get_month_schedule_from_hnz_hp(
+        events_each_date = get_month_content_from_hnz_hp(
             year, "{:02}".format(month)
         )
         if events_each_date is None:
@@ -45,7 +45,7 @@ def main():
         for event_each_date in events_each_date:
             # 特定の日に予定されているイベントの詳細を取得します。
             event_date_text, events_time, events_name, events_category, events_link = (
-                get_events_from_hnz_hp(event_each_date)
+                get_contents_from_hnz_hp(event_each_date)
             )
             event_date_text = "{:02}".format(int(event_date_text))
 
