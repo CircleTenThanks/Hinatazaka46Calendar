@@ -37,8 +37,11 @@ def get_event_info_from_hnz_hp(event_name, event_category, event_time, event_lin
         tuple: イベント名、カテゴリ、時間、リンクのテキスト情報。
     """
     event_name_text = remove_blank(event_name.text)
-    event_category_text = remove_blank(event_category.contents[1].text)
-    event_time_text = remove_blank(event_time.text)
+    event_category_text = remove_blank(event_category.text)
+    if event_time is not None:
+        event_time_text = remove_blank(event_time.text)
+    else:
+        event_time_text = None
     event_link_text = f"https://www.hinatazaka46.com{event_link.find('a')['href']}"
 
     return event_name_text, event_category_text, event_time_text, event_link_text

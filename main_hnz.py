@@ -40,44 +40,72 @@ def main():
         )
 
         # 日向坂46公式ホームページからその月のスケジュールを取得します。
-        events_each_date = get_month_content_from_hnz_hp(
-            year, "{:02}".format(month)
+        events_each_date_schedule = get_month_content_from_hnz_hp(
+            year, "{:02}".format(month), content_type="schedule"
         )
-        if events_each_date is None:
-            continue
+        events_each_date_news = get_month_content_from_hnz_hp(
+            year, "{:02}".format(month), content_type="news"
+        )
 
-        for event_each_date in events_each_date:
-            # 特定の日に予定されているイベントの詳細を取得します。
-            event_date_text, events_time, events_name, events_category, events_link = (
-                get_contents_from_hnz_hp(event_each_date)
-            )
-            event_date_text = "{:02}".format(int(event_date_text))
-
-            # 取得したイベントをGoogleカレンダーに追加します。
-            for event_name, event_category, event_time, event_link in zip(
-                events_name, events_category, events_time, events_link
-            ):
-                calendar_id = calendar_id_schedule
-                add_event_to_google_calendar(
-                    service,
-                    calendar_id,
-                    year,
-                    month,
-                    event_date_text,
-                    event_name,
-                    event_category,
-                    event_time,
-                    event_link,
-                    previous_add_event_lists_schedule,
+        # スケジュール情報の処理
+        if events_each_date_schedule:
+            for event_each_date in events_each_date_schedule:
+                event_date_text, events_time, events_name, events_category, events_link = (
+                    get_contents_from_hnz_hp(event_each_date, content_type="schedule")
                 )
+                if event_date_text is not None:
+                    event_date_text = "{:02}".format(int(event_date_text))
+
+                    for event_name, event_category, event_time, event_link in zip(
+                        events_name, events_category, events_time, events_link
+                    ):
+                        add_event_to_google_calendar(
+                            service,
+                            calendar_id_schedule,
+                            year,
+                            month,
+                            event_date_text,
+                            event_name,
+                            event_category,
+                            event_time,
+                            event_link,
+                            previous_add_event_lists_schedule,
+                        )
+
+        # ニュース情報の処理
+        if events_each_date_news:
+            for event_each_date in events_each_date_news:
+                event_date_text, _, events_name, events_category, events_link = (
+                    get_contents_from_hnz_hp(event_each_date, content_type="news")
+                )
+                if event_date_text is not None:
+                    event_date_text = "{:02}".format(int(event_date_text))
+
+                    for event_name, event_category, _, event_link in zip(
+                        events_name, events_category, [None]*len(events_name), events_link
+                    ):
+                        add_event_to_google_calendar(
+                            service,
+                            calendar_id_news,
+                            year,
+                            month,
+                            event_date_text,
+                            event_name,
+                            event_category,
+                            None,
+                            event_link,
+                            previous_add_event_lists_news,
+                        )
 
         # 日向坂46公式ホームページから削除されたイベントをGoogleカレンダーからも削除します。
-        remove_event_from_google_calendar(
-            service, calendar_id_schedule, previous_add_event_lists_schedule
-        )
-        remove_event_from_google_calendar(
-            service, calendar_id_news, previous_add_event_lists_news
-        )
+        if events_each_date_schedule and events_each_date_schedule[0] is not None:
+            remove_event_from_google_calendar(
+                service, calendar_id_schedule, previous_add_event_lists_schedule
+            )
+        if events_each_date_news and events_each_date_news[0] is not None:
+            remove_event_from_google_calendar(
+                service, calendar_id_news, previous_add_event_lists_news
+            )
 
         # 次の月のスケジュール取得のために日付を更新します。
         current_search_date += relativedelta(months=1)

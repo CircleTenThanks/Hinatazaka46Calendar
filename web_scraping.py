@@ -59,16 +59,19 @@ def get_month_content_from_hnz_hp(year, month, content_type="schedule"):
         month (str): コンテンツを取得する月。
         content_type (str): 取得するコンテンツのタイプ（'schedule' または 'news'）。
     """
-    # URLからコンテンツを取得し、日付の検証を行います。
+    # URLからコンテンツを取得します。
     soup = fetch_url_content(year, month, content_type)
-    if not validate_date(soup, year, month):
-        return
+    
+    # content_typeが'schedule'の場合のみ日付の検証を行います。
+    if content_type == "schedule":
+        if not validate_date(soup, year, month):
+            return
 
     # content_typeに応じてスケジュール情報を含むHTML要素を取得します。
     if content_type == "schedule":
         content_each_date = soup.find_all("div", {"class": "p-schedule__list-group"})
     elif content_type == "news":
-        content_each_date = soup.find_all("div", {"class": "p-news__list"})
+        content_each_date = soup.find_all("ul", {"class": "p-news__list"})
     else:
         raise ValueError("Invalid content type specified. Use 'schedule' or 'news'.")
 
@@ -83,25 +86,31 @@ def get_contents_from_hnz_hp(content_each_date, content_type="schedule"):
         content_each_date (bs4.element.Tag): 特定の日に関するスケジュール情報またはニュース情報を含むHTMLタグ。
         content_type (str): コンテンツのタイプ（'schedule' または 'news'）。
     """
-    if content_type == "schedule":
-        # 特定の日付とその日のイベント情報を抽出します。
-        content_date_text = text_processing.remove_blank(content_each_date.contents[1].text)[:-1]
-        contents_time = content_each_date.find_all("div", {"class": "c-schedule__time--list"})
-        contents_name = content_each_date.find_all("p", {"class": "c-schedule__text"})
-        contents_category = content_each_date.find_all("div", {"class": "p-schedule__head"})
-        contents_link = content_each_date.find_all("li", {"class": "p-schedule__item"})
-    elif content_type == "news":
-        # ニュースタイプの情報を抽出します。
-        content_date_text = text_processing.remove_blank(content_each_date.find("div", {"class": "c-news__date"}).text)
-        contents_time = None
-        contents_name = content_each_date.find_all("p", {"class": "c-news__text"})
-        contents_category = content_each_date.find_all("div", {"class": "c-news__category"})
-        contents_link = content_each_date.find_all("li", {"class": "p-news__item"})
-    else:
-        raise ValueError("Invalid content type specified. Use 'schedule' or 'news'.")
+    try:
+        if content_type == "schedule":
+            # 特定の日付とその日のイベント情報を抽出します。
+            content_date_text = text_processing.remove_blank(content_each_date.contents[1].text)[:-1]
+            contents_time = content_each_date.find_all("div", {"class": "c-schedule__time--list"})
+            contents_name = content_each_date.find_all("p", {"class": "c-schedule__text"})
+            contents_category = content_each_date.find_all("div", {"class": "c-schedule__category"})
+            contents_link = content_each_date.find_all("li", {"class": "p-schedule__item"})
+        elif content_type == "news":
+            # ニュースタイプの情報を抽出し、日付のフォーマットを整形します。
+            content_date_text = text_processing.remove_blank(content_each_date.find("time", {"class": "c-news__date"}).text.split('.')[-1].strip())
+            contents_time = None
+            contents_name = content_each_date.find_all("p", {"class": "c-news__text"})
+            contents_category = content_each_date.find_all("div", {"class": "c-news__category"})
+            contents_link = content_each_date.find_all("li", {"class": "p-news__item"})
+        else:
+            raise ValueError("Invalid content type specified. Use 'schedule' or 'news'.")
 
-    return content_date_text, contents_time, contents_name, contents_category, contents_link
-
+        return content_date_text, contents_time, contents_name, contents_category, contents_link
+    except Exception as e:
+        if content_type == "schedule":
+            print("スケジュールがありませんでした")
+        elif content_type == "news":
+            print("ニュースがありませんでした")
+        return None, None, None, None, None
 def get_time_content_from_content_info(content_time_text):
     """
     コンテンツの開始時間と終了時間を取得します。
