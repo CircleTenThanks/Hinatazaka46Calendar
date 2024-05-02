@@ -50,11 +50,11 @@ def main():
         # スケジュール情報の処理
         if events_each_date_schedule:
             for event_each_date in events_each_date_schedule:
-                event_date_text, events_time, events_name, events_category, events_link = (
+                events_date_text, events_time, events_name, events_category, events_link = (
                     get_contents_from_hnz_hp(event_each_date, content_type="schedule")
                 )
-                if event_date_text is not None:
-                    event_date_text = "{:02}".format(int(event_date_text))
+                if events_date_text is not None:
+                    events_date_text = "{:02}".format(int(events_date_text))
 
                     for event_name, event_category, event_time, event_link in zip(
                         events_name, events_category, events_time, events_link
@@ -64,7 +64,7 @@ def main():
                             calendar_id_schedule,
                             year,
                             month,
-                            event_date_text,
+                            events_date_text,
                             event_name,
                             event_category,
                             event_time,
@@ -76,28 +76,25 @@ def main():
         # ニュース情報の処理
         if events_each_date_news:
             for event_each_date in events_each_date_news:
-                event_date_text, _, events_name, events_category, events_link = (
+                events_date_text, _, events_name, events_category, events_link = (
                     get_contents_from_hnz_hp(event_each_date, content_type="news")
                 )
-                if event_date_text is not None:
-                    event_date_text = "{:02}".format(int(event_date_text))
-
-                    for event_name, event_category, _, event_link in zip(
-                        events_name, events_category, [None]*len(events_name), events_link
-                    ):
-                        add_event_to_google_calendar(
-                            service,
-                            calendar_id_news,
-                            year,
-                            month,
-                            event_date_text,
-                            event_name,
-                            event_category,
-                            None,
-                            event_link,
-                            previous_add_event_lists_news,
-                            content_type="news",
-                        )
+                for event_date_text, event_name, event_category, _, event_link in zip(
+                    events_date_text, events_name, events_category, [None]*len(events_name), events_link
+                ):
+                    add_event_to_google_calendar(
+                        service,
+                        calendar_id_news,
+                        year,
+                        month,
+                        event_date_text,
+                        event_name,
+                        event_category,
+                        None,
+                        event_link,
+                        previous_add_event_lists_news,
+                        content_type="news",
+                    )
 
         # 日向坂46公式ホームページから削除されたイベントをGoogleカレンダーからも削除します。
         if events_each_date_schedule and events_each_date_schedule[0] is not None:

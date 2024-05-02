@@ -96,7 +96,7 @@ def get_contents_from_hnz_hp(content_each_date, content_type="schedule"):
             contents_link = content_each_date.find_all("li", {"class": "p-schedule__item"})
         elif content_type == "news":
             # ニュースタイプの情報を抽出し、日付のフォーマットを整形します。
-            content_date_text = text_processing.remove_blank(content_each_date.find("time", {"class": "c-news__date"}).text.split('.')[-1].strip())
+            content_date_text = [date.text.split(".")[2] for date in content_each_date.find_all("time", {"class": "c-news__date"})]
             contents_time = None
             contents_name = content_each_date.find_all("p", {"class": "c-news__text"})
             contents_category = content_each_date.find_all("div", {"class": "c-news__category"})
