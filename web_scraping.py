@@ -74,19 +74,30 @@ def get_month_schedule_from_hnz_hp(year, month, content_type="media"):
     time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機します。
     return events_each_date
 
-def get_events_from_hnz_hp(event_each_date):
+def get_events_from_hnz_hp(event_each_date, content_type="media"):
     """
     特定の日のイベントを一括で日向坂46公式HPから取得します。
     
     Args:
         event_each_date (bs4.element.Tag): 特定の日に関するイベント情報を含むHTMLタグ。
+        content_type (str): コンテンツのタイプ（'media' または 'news'）。
     """
-    # 特定の日付とその日のイベント情報を抽出します。
-    event_date_text = text_processing.remove_blank(event_each_date.contents[1].text)[:-1]
-    events_time = event_each_date.find_all("div", {"class": "c-schedule__time--list"})
-    events_name = event_each_date.find_all("p", {"class": "c-schedule__text"})
-    events_category = event_each_date.find_all("div", {"class": "p-schedule__head"})
-    events_link = event_each_date.find_all("li", {"class": "p-schedule__item"})
+    if content_type == "media":
+        # 特定の日付とその日のイベント情報を抽出します。
+        event_date_text = text_processing.remove_blank(event_each_date.contents[1].text)[:-1]
+        events_time = event_each_date.find_all("div", {"class": "c-schedule__time--list"})
+        events_name = event_each_date.find_all("p", {"class": "c-schedule__text"})
+        events_category = event_each_date.find_all("div", {"class": "p-schedule__head"})
+        events_link = event_each_date.find_all("li", {"class": "p-schedule__item"})
+    elif content_type == "news":
+        # ニュースタイプのイベント情報を抽出します。
+        event_date_text = text_processing.remove_blank(event_each_date.find("div", {"class": "c-news__date"}).text)
+        events_time = None
+        events_name = event_each_date.find_all("p", {"class": "c-news__text"})
+        events_category = event_each_date.find_all("div", {"class": "c-news__category"})
+        events_link = event_each_date.find_all("li", {"class": "p-news__item"})
+    else:
+        raise ValueError("Invalid content type specified. Use 'media' or 'news'.")
 
     return event_date_text, events_time, events_name, events_category, events_link
 
