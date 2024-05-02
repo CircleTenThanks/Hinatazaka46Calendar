@@ -1,27 +1,28 @@
 from dependencies import time, requests, BeautifulSoup
 import text_processing
 """
-このモジュールは、ウェブスクレイピングを行い、日向坂46の公式ホームページからイベントスケジュールを取得するための関数を提供します。
+このモジュールは、ウェブスクレイピングを行い、日向坂46の公式ホームページからイベントスケジュールやニュースを取得するための関数を提供します。
 主な機能は以下の通りです：
 - 日向坂46の公式ホームページからイベントスケジュールを取得
-これにより、ユーザーは日向坂46の最新のスケジュールを常に確認することができます。
+- 日向坂46の公式ホームページからニュースを取得
+これにより、ユーザーは日向坂46の最新のスケジュールやニュースを常に確認することができます。
 """
-def fetch_url_content(year, month, url_type="media"):
+def fetch_url_content(year, month, content_type="schedule"):
     """
     指定された年月のURLからコンテンツを取得します。
     
     Args:
         year (str): 取得するコンテンツの年。
         month (str): 取得するコンテンツの月。
-        url_type (str): 取得するコンテンツのタイプ（'media' または 'news'）。
+        content_type (str): 取得するコンテンツのタイプ（'schedule' または 'news'）。
     """
-    # URLタイプに応じてURLを組み立てます。
-    if url_type == "media":
+    # コンテンツタイプに応じてURLを組み立てます。
+    if content_type == "schedule":
         url = f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
-    elif url_type == "news":
+    elif content_type == "news":
         url = f"https://www.hinatazaka46.com/s/official/news/list?ima=0000&dy={year}{month}"
     else:
-        raise ValueError("Invalid URL type specified. Use 'media' or 'news'.")
+        raise ValueError("Invalid content type specified. Use 'schedule' or 'news'.")
     
     # リクエストを送信し、BeautifulSoupオブジェクトを返します。
     response = requests.get(url)
@@ -49,40 +50,40 @@ def validate_date(soup, year, month):
         return False
     return True
 
-def get_month_schedule_from_hnz_hp(year, month, content_type="media"):
+def get_month_schedule_from_hnz_hp(year, month, content_type="schedule"):
     """
-    指定した月のスケジュールを日向坂46公式HPから取得します。
+    指定した月のスケジュールまたはニュースを日向坂46公式HPから取得します。
     
     Args:
-        year (str): スケジュールを取得する年。
-        month (str): スケジュールを取得する月。
-        content_type (str): 取得するコンテンツのタイプ（'media' または 'news'）。
+        year (str): コンテンツを取得する年。
+        month (str): コンテンツを取得する月。
+        content_type (str): 取得するコンテンツのタイプ（'schedule' または 'news'）。
     """
     # URLからコンテンツを取得し、日付の検証を行います。
     soup = fetch_url_content(year, month, content_type)
     if not validate_date(soup, year, month):
         return
 
-    # content_typeに応じてスケジュール情報を含むHTML要素を取得します。
-    if content_type == "media":
+    # content_typeに応じて情報を含むHTML要素を取得します。
+    if content_type == "schedule":
         events_each_date = soup.find_all("div", {"class": "p-schedule__list-group"})
     elif content_type == "news":
         events_each_date = soup.find_all("div", {"class": "p-news__list"})
     else:
-        raise ValueError("Invalid content type specified. Use 'media' or 'news'.")
+        raise ValueError("Invalid content type specified. Use 'schedule' or 'news'.")
 
     time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機します。
     return events_each_date
 
-def get_events_from_hnz_hp(event_each_date, content_type="media"):
+def get_events_from_hnz_hp(event_each_date, content_type="schedule"):
     """
-    特定の日のイベントを一括で日向坂46公式HPから取得します。
+    特定の日のイベントまたはニュースを一括で日向坂46公式HPから取得します。
     
     Args:
-        event_each_date (bs4.element.Tag): 特定の日に関するイベント情報を含むHTMLタグ。
-        content_type (str): コンテンツのタイプ（'media' または 'news'）。
+        event_each_date (bs4.element.Tag): 特定の日に関するイベント情報またはニュース情報を含むHTMLタグ。
+        content_type (str): コンテンツのタイプ（'schedule' または 'news'）。
     """
-    if content_type == "media":
+    if content_type == "schedule":
         # 特定の日付とその日のイベント情報を抽出します。
         event_date_text = text_processing.remove_blank(event_each_date.contents[1].text)[:-1]
         events_time = event_each_date.find_all("div", {"class": "c-schedule__time--list"})
@@ -90,14 +91,14 @@ def get_events_from_hnz_hp(event_each_date, content_type="media"):
         events_category = event_each_date.find_all("div", {"class": "p-schedule__head"})
         events_link = event_each_date.find_all("li", {"class": "p-schedule__item"})
     elif content_type == "news":
-        # ニュースタイプのイベント情報を抽出します。
+        # ニュースタイプの情報を抽出します。
         event_date_text = text_processing.remove_blank(event_each_date.find("div", {"class": "c-news__date"}).text)
         events_time = None
         events_name = event_each_date.find_all("p", {"class": "c-news__text"})
         events_category = event_each_date.find_all("div", {"class": "c-news__category"})
         events_link = event_each_date.find_all("li", {"class": "p-news__item"})
     else:
-        raise ValueError("Invalid content type specified. Use 'media' or 'news'.")
+        raise ValueError("Invalid content type specified. Use 'schedule' or 'news'.")
 
     return event_date_text, events_time, events_name, events_category, events_link
 
