@@ -112,21 +112,9 @@ def over24Hdatetime(year, month, day, times):
 
     return dt.strftime("%Y-%m-%dT%H:%M:%S")
 
-
-def extract_datetimes(text, section=None):
-    # 日付の正規表現パターンとそれに対応するインデックスの辞書
-    date_patterns = [
-        (r'\b(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日?\b', (1, 2, 3)),                         # YYYY年MM月DD日
-        (r'\b(\d{4})年(\d{1,2})月(\d{1,2})日?\b', (1, 2, 3)),                               # YYYY年MM月DD日 (年月日連結)
-        (r'\b(\d{4})[/-]\s*(\d{1,2})[/-]\s*(\d{1,2})\b', (1, 2, 3)),                          # YYYY/MM/DD or YYYY-MM-DD
-        (r'\b(\d{1,2})[/-]\s*(\d{1,2})[/-]\s*(\d{2}|\d{4})\b', (3, 2, 1)),                    # DD/MM/YYYY or DD-MM-YYYY
-        (r'\b(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日?\b', (1, 2, 3)),                          # YYYY年MM月DD日 (日を含まない)
-        (r'\b(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})\b', (1, 2, 3)),                             # YYYY年MM月DD (日に日付の区切り文字がない)
-        (r'\b(\d{4})[/-]\s*(\d{1,2})[/-]\s*(\d{2}|\d{4})\b', (1, 2, 3)),                      # YYYY/MM/DD or YYYY-MM-DD (YY年を含む)
-        (r'\b(\d{1,2})[/-]\s*(\d{1,2})[/-]\s*(\d{2}|\d{4})\b', (3, 2, 1)),                    # DD/MM/YYYY or DD-MM-YYYY (日付の順番が逆)
-        (r'\b(\d{1,2})月\s*(\d{1,2})日\s*(\d{4})年?\b', (3, 1, 2)),                           # MM月DD日YYYY年 (日月の順番)
-        (r'\b(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日\b', (1, 2, 3)),                   # YYYY年 MM月 DD日 (スペースがある)
-    ]
+def extract_datetimes(text, content_dt, section=None):
+    # 日付の正規表現パターン
+    date_pattern = r'(\d{1,2})月(\d{1,2})日|(\d{1,2})[/-](\d{1,2})'
     
     # セクション指定がある場合、そのセクション内のテキストのみを抽出
     if section:
@@ -138,15 +126,17 @@ def extract_datetimes(text, section=None):
             return []
 
     datetimes = []
-    for pattern, indices in date_patterns:
-        matches = re.finditer(pattern, text)
-        for match in matches:
-            groups = match.groups()
-            year, month, day = [int(groups[i - 1]) for i in indices]
-            datetime_obj = datetime.datetime(year, month, day)
-            if datetime_obj not in datetimes:
-                datetimes.append(datetime_obj)
-    
+    matches = re.finditer(date_pattern, text)
+    for match in matches:
+        groups = match.groups()
+        month, day = [int(groups[i - 1]) for i in (1, 2)]
+        if datetime.datetime(content_dt.year, month, day) > content_dt:
+            datetime_obj = datetime.datetime(content_dt.year, month, day)
+        else:
+            datetime_obj = datetime.datetime(content_dt.year + 1, month, day)
+        if datetime_obj not in datetimes:
+            datetimes.append(datetime_obj)
+
     if datetimes:
         return datetimes
     else:

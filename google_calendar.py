@@ -160,7 +160,7 @@ def add_event_to_google_calendar(
         print("pass:" + event_start + " " + event_title)
         pass
     else:
-        event_description = get_event_description(event_link_text, content_type)
+        event_description = get_event_description(event_link_text, datetime.datetime(year, month, int(event_date_text)), content_type)
         print("add:" + event_start + " " + event_title)
         build_google_calendar_format(
             calendar_id,

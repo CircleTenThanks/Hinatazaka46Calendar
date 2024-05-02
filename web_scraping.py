@@ -126,7 +126,7 @@ def get_time_content_from_content_info(content_time_text):
     end += ":00" if has_end else start
     return start, end
 
-def get_event_description(event_link_text, content_type="schedule"):
+def get_event_description(event_link_text, content_dt, content_type="schedule"):
     """
     イベントに登録されているメンバーを取得します。
     
@@ -153,7 +153,7 @@ def get_event_description(event_link_text, content_type="schedule"):
 
             # 文字列から日時を抽出して表示
             try:
-                extracted_datetimes = text_processing.extract_datetimes(description, "日程")
+                extracted_datetimes = text_processing.extract_datetimes(description, content_dt, "日程")
                 for dt in extracted_datetimes:
                     print(f"Datetime: {dt}")
             except ValueError as e:
