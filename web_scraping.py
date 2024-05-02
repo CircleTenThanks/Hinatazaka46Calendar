@@ -6,17 +6,24 @@ import text_processing
 - 日向坂46の公式ホームページからイベントスケジュールを取得
 これにより、ユーザーは日向坂46の最新のスケジュールを常に確認することができます。
 """
-
-def fetch_url_content(year, month):
+def fetch_url_content(year, month, url_type="media"):
     """
     指定された年月のURLからコンテンツを取得します。
     
     Args:
         year (str): 取得するコンテンツの年。
         month (str): 取得するコンテンツの月。
+        url_type (str): 取得するコンテンツのタイプ（'media' または 'news'）。
     """
-    # URLを組み立ててリクエストを送信し、BeautifulSoupオブジェクトを返します。
-    url = f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
+    # URLタイプに応じてURLを組み立てます。
+    if url_type == "media":
+        url = f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
+    elif url_type == "news":
+        url = f"https://www.hinatazaka46.com/s/official/news/list?ima=0000&dy={year}{month}"
+    else:
+        raise ValueError("Invalid URL type specified. Use 'media' or 'news'.")
+    
+    # リクエストを送信し、BeautifulSoupオブジェクトを返します。
     response = requests.get(url)
     return BeautifulSoup(response.content, features="lxml")
 
@@ -42,16 +49,17 @@ def validate_date(soup, year, month):
         return False
     return True
 
-def get_month_schedule_from_hnz_hp(year, month):
+def get_month_schedule_from_hnz_hp(year, month, content_type="media"):
     """
     指定した月のスケジュールを日向坂46公式HPから取得します。
     
     Args:
         year (str): スケジュールを取得する年。
         month (str): スケジュールを取得する月。
+        content_type (str): 取得するコンテンツのタイプ（'media' または 'news'）。
     """
     # URLからコンテンツを取得し、日付の検証を行います。
-    soup = fetch_url_content(year, month)
+    soup = fetch_url_content(year, month, content_type)
     if not validate_date(soup, year, month):
         return
 
