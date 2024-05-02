@@ -2,8 +2,8 @@ from dependencies import os, pickle, datetime, build, service_account, Request
 from text_processing import (
     get_event_info_from_hnz_hp,
     prepare_info_for_calendar,
-    get_event_member_from_event_info,
 )
+from web_scraping import get_event_member_from_event_info
 """
 このモジュールは、Google Calendar APIを使用してカレンダーの操作を行うための関数を提供します。
 主な機能は以下の通りです：
@@ -159,19 +159,18 @@ def add_event_to_google_calendar(
         print("pass:" + event_start + " " + event_title)
         pass
     else:
-        active_members = get_event_member_from_event_info(event_link_text)
+        event_description = get_event_member_from_event_info(event_link_text)
         print("add:" + event_start + " " + event_title)
         build_google_calendar_format(
             calendar_id,
             event_title,
             event_start,
             event_end,
-            active_members,
+            event_description,
             event_link_text,
             is_date,
             service,
         )
-
 
 def build_google_calendar_format(
     calendar_id, summary, start, end, active_members, event_link_text, is_date, service

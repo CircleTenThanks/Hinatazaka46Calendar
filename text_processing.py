@@ -47,32 +47,6 @@ def get_event_info_from_hnz_hp(event_name, event_category, event_time, event_lin
     return event_name_text, event_category_text, event_time_text, event_link_text
 
 
-def get_event_member_from_event_info(event_link_text):
-    """
-    イベントに登録されているメンバーを取得します。
-    
-    Args:
-        event_link_text (str): イベントの詳細ページのURL。
-        
-    Returns:
-        str: 取得したメンバーのテキスト情報。メンバーがいない場合は空文字列を返します。
-    """
-    try:
-        result = requests.get(event_link_text)
-        soup = BeautifulSoup(result.content, features="lxml")
-        active_members = soup.find("div", {"class": "c-article__tag"}).findAll("a")
-
-        if not active_members:
-            return ""
-
-        members_text = "メンバー:" + ",".join(member.text for member in active_members)
-        time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機
-    except AttributeError:
-        return ""
-
-    return members_text
-
-
 def prepare_info_for_calendar(
     year, month, event_name_text, event_category_text, event_time_text, event_date_text
 ):
