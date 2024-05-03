@@ -113,8 +113,12 @@ def over24Hdatetime(year, month, day, times):
     return dt.strftime("%Y-%m-%dT%H:%M:%S")
 
 def extract_datetimes(text, content_dt, section=None):
+
+    text = remove_blank(text)
     # 日付の正規表現パターン
-    date_pattern = r'(\d{1,2})月(\d{1,2})日|(\d{1,2})[/-](\d{1,2})'
+    date_pattern = r'(\d{1,2})[月/-](\d{1,2})'
+    open_time_pattern = r'開場.*?(\d{1,2})[時:](\d{1,2})'
+    start_time_pattern = r'開演.*?(\d{1,2})[時:](\d{1,2})'
     
     # セクション指定がある場合、そのセクション内のテキストのみを抽出
     if section:
@@ -126,18 +130,40 @@ def extract_datetimes(text, content_dt, section=None):
             return []
 
     datetimes = []
-    matches = re.finditer(date_pattern, text)
-    for match in matches:
-        groups = match.groups()
-        month, day = [int(groups[i - 1]) for i in (1, 2)]
-        if datetime.datetime(content_dt.year, month, day) > content_dt:
-            datetime_obj = datetime.datetime(content_dt.year, month, day)
-        else:
-            datetime_obj = datetime.datetime(content_dt.year + 1, month, day)
-        if datetime_obj not in datetimes:
+
+    open_time_matches = re.findall(open_time_pattern, text)
+    start_time_matches = re.findall(start_time_pattern, text)
+    date_matches = re.findall(date_pattern, text)
+    date_index = 0
+    time_index = 0
+
+    for date_index in range(len(date_matches)):
+        month, day = [int(date_matches[date_index][i - 1]) for i in (1, 2)]
+        if len(open_time_matches) != 0:
+            hour, minute = [int(open_time_matches[time_index][i - 1]) for i in (1, 2)]
+            datetime_obj = datetime.datetime(content_dt.year, month, day, hour, minute)
+            if datetime.datetime(content_dt.year, month, day) < content_dt:
+                datetime_obj += datetime.timedelta(year=1)
             datetimes.append(datetime_obj)
 
-    if datetimes:
-        return datetimes
-    else:
+        if len(start_time_matches) != 0:
+            hour, minute = [int(start_time_matches[time_index][i - 1]) for i in (1, 2)]
+            datetime_obj = datetime.datetime(content_dt.year, month, day, hour, minute)
+            if datetime.datetime(content_dt.year, month, day) < content_dt:
+                datetime_obj += datetime.timedelta(year=1)
+            datetimes.append(datetime_obj)
+
+        if len(open_time_matches) == 0 and len(start_time_matches) == 0:
+            datetime_obj = datetime.datetime(content_dt.year, month, day)
+            if datetime.datetime(content_dt.year, month, day) < content_dt:
+                datetime_obj += datetime.timedelta(year=1)
+            datetimes.append(datetime_obj)
+
+        time_index += 1
+        if (time_index) >= len(open_time_matches): 
+            time_index -= 1
+
+    if not datetimes:
         raise ValueError("No valid dates found in the text.")
+
+    return datetimes
