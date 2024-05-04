@@ -142,43 +142,46 @@ def parse_datetimes(text, content_dt):
     """
     text = remove_blank(text)
     date_pattern = r'(\d{1,2})[月/-](\d{1,2})'
-    open_time_pattern = r'開場.*?(\d{1,2})[時:](\d{1,2})'
-    start_time_pattern = r'開演.*?(\d{1,2})[時:](\d{1,2})'
+    time_pattern = r'開場.*?(\d{1,2})[時:](\d{1,2}).*?開演.*?(\d{1,2})[時:](\d{1,2})'
 
     datetimes = []
-    open_time_matches = re.findall(open_time_pattern, text)
-    start_time_matches = re.findall(start_time_pattern, text)
+    time_matches = re.findall(time_pattern, text)
     date_matches = re.findall(date_pattern, text)
-    date_index = 0
-    time_index = 0
 
-    for date_index in range(len(date_matches)):
-        month, day = [int(date_matches[date_index][i - 1]) for i in (1, 2)]
-        if len(open_time_matches) != 0:
-            hour, minute = [int(open_time_matches[time_index][i - 1]) for i in (1, 2)]
-            datetime_obj = datetime.datetime(content_dt.year, month, day, hour, minute)
-            if datetime.datetime(content_dt.year, month, day) < content_dt:
-                datetime_obj += datetime.timedelta(year=1)
-            datetimes.append(("開場", datetime_obj))
-
-        if len(start_time_matches) != 0:
-            hour, minute = [int(start_time_matches[time_index][i - 1]) for i in (1, 2)]
-            datetime_obj = datetime.datetime(content_dt.year, month, day, hour, minute)
-            if datetime.datetime(content_dt.year, month, day) < content_dt:
-                datetime_obj += datetime.timedelta(year=1)
-            datetimes.append(("開演", datetime_obj))
-
-        if len(open_time_matches) == 0 and len(start_time_matches) == 0:
-            datetime_obj = datetime.datetime(content_dt.year, month, day)
-            if datetime.datetime(content_dt.year, month, day) < content_dt:
+    if len(time_matches) == 0:
+        # 時間が抽出できなかった場合は0時としてセット
+        for month, day in date_matches:
+            month, day = map(int, (month, day))
+            datetime_obj = datetime.datetime(content_dt.year, month, day, 0, 0)
+            if datetime_obj < content_dt:
                 datetime_obj += datetime.timedelta(year=1)
             datetimes.append(("", datetime_obj))
-
-        time_index += 1
-        if (time_index) >= len(open_time_matches): 
-            time_index -= 1
+    elif len(time_matches) == 1:
+        # 全ての日付が共通の時間を持つ場合
+        open_hour, open_minute, start_hour, start_minute = map(int, time_matches[0])
+        for month, day in date_matches:
+            month, day = map(int, (month, day))
+            open_datetime = datetime.datetime(content_dt.year, month, day, open_hour, open_minute)
+            start_datetime = datetime.datetime(content_dt.year, month, day, start_hour, start_minute)
+            if open_datetime < content_dt:
+                open_datetime += datetime.timedelta(year=1)
+                start_datetime += datetime.timedelta(year=1)
+            datetimes.append(("開場", open_datetime))
+            datetimes.append(("開演", start_datetime))
+    else:
+        # 各日付が異なる時間を持つ場合
+        for (month, day), (open_hour, open_minute, start_hour, start_minute) in zip(date_matches, time_matches):
+            month, day, open_hour, open_minute, start_hour, start_minute = map(int, (month, day, open_hour, open_minute, start_hour, start_minute))
+            open_datetime = datetime.datetime(content_dt.year, month, day, open_hour, open_minute)
+            start_datetime = datetime.datetime(content_dt.year, month, day, start_hour, start_minute)
+            if open_datetime < content_dt:
+                open_datetime += datetime.timedelta(year=1)
+                start_datetime += datetime.timedelta(year=1)
+            datetimes.append(("開場", open_datetime))
+            datetimes.append(("開演", start_datetime))
 
     if not datetimes:
         raise ValueError("No valid dates found in the text.")
 
     return datetimes
+
