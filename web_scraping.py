@@ -155,9 +155,27 @@ def get_event_description(event_link_text, content_dt, content_type="schedule"):
             try:
                 section_text = text_processing.extract_section_text(description, "日程")
                 if section_text != "":
-                    extracted_datetimes = text_processing.parse_datetimes(section_text, content_dt)
+                    extracted_datetimes = text_processing.parse_open_start_datetimes(section_text, content_dt)
                     for dt_type, dt in extracted_datetimes:
                         print(f"{dt_type} : {dt}")
+                
+                section_text = text_processing.extract_section_text(description, "チケット一般発売")
+                if section_text != "":
+                    extracted_datetimes = text_processing.parse_ticket_datetimes(section_text, content_dt)
+                    for dt_type, dt in extracted_datetimes:
+                        print(f"チケット一般発売 : {dt}")
+                
+                section_text = text_processing.extract_section_text(description, "ライブチケット一般発売")
+                if section_text != "":
+                    extracted_datetimes = text_processing.parse_ticket_datetimes(section_text, content_dt)
+                    for dt_type, dt in extracted_datetimes:
+                        print(f"ライブチケット一般発売 : {dt}")
+                
+                section_text = text_processing.extract_section_text(description, "先行受付スケジュール")
+                if section_text != "":
+                    extracted_datetimes = text_processing.parse_ticket_datetimes(section_text, content_dt)
+                    for dt_type, dt in extracted_datetimes:
+                        print(f"先行受付スケジュール : {dt}")
             except ValueError as e:
                 print(f"Error: {e}")
 

@@ -129,7 +129,7 @@ def extract_section_text(text, section):
     else:
         return ""
 
-def parse_datetimes(text, content_dt):
+def parse_open_start_datetimes(text, content_dt):
     """
     テキストから日時情報を解析してdatetimeオブジェクトのリストを返す。
 
@@ -159,6 +159,38 @@ def parse_datetimes(text, content_dt):
         raise ValueError("No valid dates found in the text.")
 
     return datetimes
+
+def parse_ticket_datetimes(text, content_dt):
+    """
+    テキストから日時情報を解析してdatetimeオブジェクトのリストを返す。
+
+    Args:
+        text (str): 日時情報が含まれるテキスト。
+        content_dt (datetime): 基準となる日時。
+
+    Returns:
+        list: datetimeオブジェクトのリスト。
+    """
+    text = remove_blank(text)
+    date_pattern = r'(\d{1,2})[月/-](\d{1,2})'
+    time_pattern = r'(\d{1,2})[時:](\d{1,2})'
+
+    datetimes = []
+    time_matches = re.findall(time_pattern, text)
+    date_matches = re.findall(date_pattern, text)
+
+    if len(time_matches) == 0:
+        datetimes = handle_no_time_matches(date_matches, content_dt)
+    elif len(time_matches) == 1:
+        datetimes = handle_ticket_time_match(date_matches, time_matches, content_dt)
+    else:
+        datetimes = handle_ticket_time_match(date_matches, time_matches, content_dt)
+
+    if not datetimes:
+        raise ValueError("No valid dates found in the text.")
+
+    return datetimes
+
 
 def handle_no_time_matches(date_matches, content_dt):
     """
@@ -225,6 +257,27 @@ def handle_multiple_time_matches(date_matches, time_matches, content_dt):
         start_datetime = adjust_datetime_if_past(start_datetime, content_dt)
         datetimes.append(("開場", open_datetime))
         datetimes.append(("開演", start_datetime))
+    return datetimes
+
+def handle_ticket_time_match(date_matches, time_matches, content_dt):
+    """
+    チケット販売時刻を抽出できた場合の日時オブジェクトのリストを生成する。
+
+    Args:
+        date_matches (list): 日付のマッチリスト。
+        time_matches (list): 時間のマッチリスト。
+        content_dt (datetime): 基準となる日時。
+
+    Returns:
+        list: 日時オブジェクトのリスト。
+    """
+    datetimes = []
+    start_hour, start_minute = map(int, time_matches[0])
+    for month, day in date_matches:
+        month, day = map(int, (month, day))
+        start_datetime = datetime.datetime(content_dt.year, month, day, start_hour, start_minute)
+        start_datetime = adjust_datetime_if_past(start_datetime, content_dt)
+        datetimes.append(("", start_datetime))
     return datetimes
 
 def adjust_datetime_if_past(datetime_obj, content_dt):
