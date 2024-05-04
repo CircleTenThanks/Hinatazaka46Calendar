@@ -149,39 +149,95 @@ def parse_datetimes(text, content_dt):
     date_matches = re.findall(date_pattern, text)
 
     if len(time_matches) == 0:
-        # 時間が抽出できなかった場合は0時としてセット
-        for month, day in date_matches:
-            month, day = map(int, (month, day))
-            datetime_obj = datetime.datetime(content_dt.year, month, day, 0, 0)
-            if datetime_obj < content_dt:
-                datetime_obj += datetime.timedelta(year=1)
-            datetimes.append(("", datetime_obj))
+        datetimes = handle_no_time_matches(date_matches, content_dt)
     elif len(time_matches) == 1:
-        # 全ての日付が共通の時間を持つ場合
-        open_hour, open_minute, start_hour, start_minute = map(int, time_matches[0])
-        for month, day in date_matches:
-            month, day = map(int, (month, day))
-            open_datetime = datetime.datetime(content_dt.year, month, day, open_hour, open_minute)
-            start_datetime = datetime.datetime(content_dt.year, month, day, start_hour, start_minute)
-            if open_datetime < content_dt:
-                open_datetime += datetime.timedelta(year=1)
-                start_datetime += datetime.timedelta(year=1)
-            datetimes.append(("開場", open_datetime))
-            datetimes.append(("開演", start_datetime))
+        datetimes = handle_single_time_match(date_matches, time_matches, content_dt)
     else:
-        # 各日付が異なる時間を持つ場合
-        for (month, day), (open_hour, open_minute, start_hour, start_minute) in zip(date_matches, time_matches):
-            month, day, open_hour, open_minute, start_hour, start_minute = map(int, (month, day, open_hour, open_minute, start_hour, start_minute))
-            open_datetime = datetime.datetime(content_dt.year, month, day, open_hour, open_minute)
-            start_datetime = datetime.datetime(content_dt.year, month, day, start_hour, start_minute)
-            if open_datetime < content_dt:
-                open_datetime += datetime.timedelta(year=1)
-                start_datetime += datetime.timedelta(year=1)
-            datetimes.append(("開場", open_datetime))
-            datetimes.append(("開演", start_datetime))
+        datetimes = handle_multiple_time_matches(date_matches, time_matches, content_dt)
 
     if not datetimes:
         raise ValueError("No valid dates found in the text.")
 
     return datetimes
 
+def handle_no_time_matches(date_matches, content_dt):
+    """
+    時間が抽出できなかった場合の日時オブジェクトのリストを生成する。
+
+    Args:
+        date_matches (list): 日付のマッチリスト。
+        content_dt (datetime): 基準となる日時。
+
+    Returns:
+        list: 日時オブジェクトのリスト。
+    """
+    datetimes = []
+    for month, day in date_matches:
+        month, day = map(int, (month, day))
+        datetime_obj = datetime.datetime(content_dt.year, month, day, 0, 0)
+        if datetime_obj < content_dt:
+            datetime_obj += datetime.timedelta(year=1)
+        datetimes.append(("", datetime_obj))
+    return datetimes
+
+def handle_single_time_match(date_matches, time_matches, content_dt):
+    """
+    全ての日付が共通の時間を持つ場合の日時オブジェクトのリストを生成する。
+
+    Args:
+        date_matches (list): 日付のマッチリスト。
+        time_matches (list): 時間のマッチリスト。
+        content_dt (datetime): 基準となる日時。
+
+    Returns:
+        list: 日時オブジェクトのリスト。
+    """
+    datetimes = []
+    open_hour, open_minute, start_hour, start_minute = map(int, time_matches[0])
+    for month, day in date_matches:
+        month, day = map(int, (month, day))
+        open_datetime = datetime.datetime(content_dt.year, month, day, open_hour, open_minute)
+        start_datetime = datetime.datetime(content_dt.year, month, day, start_hour, start_minute)
+        open_datetime = adjust_datetime_if_past(open_datetime, content_dt)
+        start_datetime = adjust_datetime_if_past(start_datetime, content_dt)
+        datetimes.append(("開場", open_datetime))
+        datetimes.append(("開演", start_datetime))
+    return datetimes
+
+def handle_multiple_time_matches(date_matches, time_matches, content_dt):
+    """
+    各日付が異なる時間を持つ場合の日時オブジェクトのリストを生成する。
+
+    Args:
+        date_matches (list): 日付のマッチリスト。
+        time_matches (list): 時間のマッチリスト。
+        content_dt (datetime): 基準となる日時。
+
+    Returns:
+        list: 日時オブジェクトのリスト。
+    """
+    datetimes = []
+    for (month, day), (open_hour, open_minute, start_hour, start_minute) in zip(date_matches, time_matches):
+        month, day, open_hour, open_minute, start_hour, start_minute = map(int, (month, day, open_hour, open_minute, start_hour, start_minute))
+        open_datetime = datetime.datetime(content_dt.year, month, day, open_hour, open_minute)
+        start_datetime = datetime.datetime(content_dt.year, month, day, start_hour, start_minute)
+        open_datetime = adjust_datetime_if_past(open_datetime, content_dt)
+        start_datetime = adjust_datetime_if_past(start_datetime, content_dt)
+        datetimes.append(("開場", open_datetime))
+        datetimes.append(("開演", start_datetime))
+    return datetimes
+
+def adjust_datetime_if_past(datetime_obj, content_dt):
+    """
+    過去の日時であれば1年を加算する。
+
+    Args:
+        datetime_obj (datetime): 検証する日時オブジェクト。
+        content_dt (datetime): 基準となる日時。
+
+    Returns:
+        datetime: 調整後の日時オブジェクト。
+    """
+    if datetime_obj < content_dt:
+        return datetime_obj + datetime.timedelta(years=1)
+    return datetime_obj
