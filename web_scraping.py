@@ -153,9 +153,11 @@ def get_event_description(event_link_text, content_dt, content_type="schedule"):
 
             # 文字列から日時を抽出して表示
             try:
-                extracted_datetimes = text_processing.extract_datetimes(description, content_dt, "日程")
-                for dt in extracted_datetimes:
-                    print(f"Datetime: {dt}")
+                section_text = text_processing.extract_section_text(description, "日程")
+                if section_text != "":
+                    extracted_datetimes = text_processing.parse_datetimes(section_text, content_dt)
+                    for dt in extracted_datetimes:
+                        print(f"Datetime: {dt}")
             except ValueError as e:
                 print(f"Error: {e}")
 

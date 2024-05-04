@@ -111,26 +111,41 @@ def over24Hdatetime(year, month, day, times):
     dt += datetime.timedelta(minutes=minutes)
 
     return dt.strftime("%Y-%m-%dT%H:%M:%S")
+def extract_section_text(text, section):
+    """
+    指定されたセクションのテキストを抽出する。
 
-def extract_datetimes(text, content_dt, section=None):
+    Args:
+        text (str): 全体のテキスト。
+        section (str): 抽出するセクション名。
 
+    Returns:
+        str: 指定されたセクションのテキスト。
+    """
+    section_pattern = rf'\【{section}\】(.*?)\【'
+    section_match = re.search(section_pattern, text + '【', re.DOTALL)
+    if section_match:
+        return section_match.group(1)
+    else:
+        return ""
+
+def parse_datetimes(text, content_dt):
+    """
+    テキストから日時情報を解析してdatetimeオブジェクトのリストを返す。
+
+    Args:
+        text (str): 日時情報が含まれるテキスト。
+        content_dt (datetime): 基準となる日時。
+
+    Returns:
+        list: datetimeオブジェクトのリスト。
+    """
     text = remove_blank(text)
-    # 日付の正規表現パターン
     date_pattern = r'(\d{1,2})[月/-](\d{1,2})'
     open_time_pattern = r'開場.*?(\d{1,2})[時:](\d{1,2})'
     start_time_pattern = r'開演.*?(\d{1,2})[時:](\d{1,2})'
-    
-    # セクション指定がある場合、そのセクション内のテキストのみを抽出
-    if section:
-        section_pattern = rf'\【{section}\】(.*?)\【'
-        section_match = re.search(section_pattern, text + '【', re.DOTALL)
-        if section_match:
-            text = section_match.group(1)
-        else:
-            return []
 
     datetimes = []
-
     open_time_matches = re.findall(open_time_pattern, text)
     start_time_matches = re.findall(start_time_pattern, text)
     date_matches = re.findall(date_pattern, text)
