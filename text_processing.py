@@ -159,20 +159,20 @@ def parse_datetimes(text, content_dt):
             datetime_obj = datetime.datetime(content_dt.year, month, day, hour, minute)
             if datetime.datetime(content_dt.year, month, day) < content_dt:
                 datetime_obj += datetime.timedelta(year=1)
-            datetimes.append(datetime_obj)
+            datetimes.append(("開場", datetime_obj))
 
         if len(start_time_matches) != 0:
             hour, minute = [int(start_time_matches[time_index][i - 1]) for i in (1, 2)]
             datetime_obj = datetime.datetime(content_dt.year, month, day, hour, minute)
             if datetime.datetime(content_dt.year, month, day) < content_dt:
                 datetime_obj += datetime.timedelta(year=1)
-            datetimes.append(datetime_obj)
+            datetimes.append(("開演", datetime_obj))
 
         if len(open_time_matches) == 0 and len(start_time_matches) == 0:
             datetime_obj = datetime.datetime(content_dt.year, month, day)
             if datetime.datetime(content_dt.year, month, day) < content_dt:
                 datetime_obj += datetime.timedelta(year=1)
-            datetimes.append(datetime_obj)
+            datetimes.append(("", datetime_obj))
 
         time_index += 1
         if (time_index) >= len(open_time_matches): 
