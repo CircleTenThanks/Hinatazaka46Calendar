@@ -1,35 +1,32 @@
 from dependencies import time, requests, BeautifulSoup
 import text_processing
 """
-このモジュールは、ウェブスクレイピングを行い、日向坂46の公式ホームページからイベントスケジュールを取得するための関数を提供します。
-主な機能は以下の通りです：
-- 日向坂46の公式ホームページからイベントスケジュールを取得
-これにより、ユーザーは日向坂46の最新のスケジュールを常に確認することができます。
+ウェブスクレイピングモジュール
 """
 
 def fetch_url_content(year, month):
     """
-    指定された年月のURLからコンテンツを取得します。
+    指定年月のURLからのコンテンツを取得する。
     
     Args:
-        year (str): 取得するコンテンツの年。
-        month (str): 取得するコンテンツの月。
+        year (str): 取得コンテンツの年
+        month (str): 取得コンテンツの月
     """
-    # URLを組み立ててリクエストを送信し、BeautifulSoupオブジェクトを返します。
+    # URLの組み立てとリクエスト送信、BeautifulSoupオブジェクトの返却
     url = f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
     response = requests.get(url)
     return BeautifulSoup(response.content, features="lxml")
 
 def validate_date(soup, year, month):
     """
-    ページの年と月が指定された年月と一致するか検証します。
+    ページの年月と指定年月が一致するか検証する。
     
     Args:
-        soup (BeautifulSoup): 解析するHTMLのBeautifulSoupオブジェクト。
-        year (str): 検証する年。
-        month (str): 検証する月。
+        soup (BeautifulSoup): 解析HTML用BeautifulSoupオブジェクト
+        year (str): 検証する年
+        month (str): 検証する月
     """
-    # ページから年と月を抽出し、指定された年月と一致するか確認します。
+    # ページからの年月抽出と指定年月との一致確認
     page_year = text_processing.remove_blank(
         soup.find("div", {"class": "c-schedule__page_year"}).text
     ).replace("年", "")
@@ -44,30 +41,30 @@ def validate_date(soup, year, month):
 
 def get_month_schedule_from_hnz_hp(year, month):
     """
-    指定した月のスケジュールを日向坂46公式HPから取得します。
+    指定月のスケジュールを取得する。
     
     Args:
-        year (str): スケジュールを取得する年。
-        month (str): スケジュールを取得する月。
+        year (str): 取得したいスケジュールの年
+        month (str): 取得したいスケジュールの月
     """
-    # URLからコンテンツを取得し、日付の検証を行います。
+    # URLからのコンテンツ取得と日付検証
     soup = fetch_url_content(year, month)
     if not validate_date(soup, year, month):
         return
 
-    # スケジュール情報を含むHTML要素を全て取得します。
+    # スケジュール情報を含むHTML要素の取得
     events_each_date = soup.find_all("div", {"class": "p-schedule__list-group"})
-    time.sleep(3)  # サーバーへの負荷を軽減するために3秒間待機します。
+    time.sleep(3)  # サーバー負荷軽減のための待機
     return events_each_date
 
 def get_events_from_hnz_hp(event_each_date):
     """
-    特定の日のイベントを一括で日向坂46公式HPから取得します。
+    特定日のイベントを一括取得する。
     
     Args:
-        event_each_date (bs4.element.Tag): 特定の日に関するイベント情報を含むHTMLタグ。
+        event_each_date (bs4.element.Tag): イベント情報を含むHTMLタグ
     """
-    # 特定の日付とその日のイベント情報を抽出します。
+    # 日付とイベント情報の抽出
     event_date_text = text_processing.remove_blank(event_each_date.contents[1].text)[:-1]
     events_time = event_each_date.find_all("div", {"class": "c-schedule__time--list"})
     events_name = event_each_date.find_all("p", {"class": "c-schedule__text"})
@@ -78,12 +75,12 @@ def get_events_from_hnz_hp(event_each_date):
 
 def get_time_event_from_event_info(event_time_text):
     """
-    イベントの開始時間と終了時間を取得します。
+    イベントの開始・終了時刻を取得する。
     
     Args:
-        event_time_text (str): イベントの時間を表すテキスト。
+        event_time_text (str): イベントの開始、終了時刻
     """
-    # イベントの時間テキストから開始時間と終了時間を抽出します。
+    # 開始時間と終了時間の抽出
     has_end = event_time_text[-1] != "~"
     start, end = (event_time_text.split("~") + [""])[:2]
     start += ":00"

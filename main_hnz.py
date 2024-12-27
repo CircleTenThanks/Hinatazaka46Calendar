@@ -6,28 +6,17 @@ from google_calendar import (
     remove_event_from_google_calendar,
 )
 from web_scraping import get_month_schedule_from_hnz_hp, get_events_from_hnz_hp
-"""
-このモジュールは、日向坂46の公式ホームページからイベントスケジュールを取得し、Googleカレンダーに自動で追加する機能を提供します。
-主な機能は以下の通りです：
-- Google Calendar APIを使用してカレンダーのインスタンスを生成します。
-- 日向坂46の公式ホームページから指定された月のスケジュールを取得します。
-- 取得したスケジュールをGoogleカレンダーに追加します。
-- Googleカレンダーから削除されたイベントを削除します。
-
-これにより、ユーザーは日向坂46の最新のスケジュールを常にカレンダー上で確認することができます。
-"""
-
 
 def main():
-    # Google Calendar APIのインスタンスを生成します。
+    # Google Calendar APIインスタンスの生成
     service = build_google_calendar_api()
 
-    # 環境変数からカレンダーIDを取得します。
+    # 環境変数からカレンダーID取得
     calendar_id = os.environ["CALENDAR_ID_HNZ"]
     num_search_month = 3
     current_search_date = datetime.datetime.now()
 
-    # 指定された月数分のスケジュールをカレンダーに反映します。
+    # 指定月数分のスケジュールをカレンダーへ反映
     for _ in range(num_search_month):
         year = current_search_date.year
         month = current_search_date.month
@@ -35,7 +24,7 @@ def main():
             service, calendar_id, year, month
         )
 
-        # 日向坂46公式ホームページからその月のスケジュールを取得します。
+        # 日向坂46公式ホームページから当月スケジュールを取得
         events_each_date = get_month_schedule_from_hnz_hp(
             year, "{:02}".format(month)
         )
@@ -43,13 +32,13 @@ def main():
             continue
 
         for event_each_date in events_each_date:
-            # 特定の日に予定されているイベントの詳細を取得します。
+            # 特定の日のイベント詳細を取得
             event_date_text, events_time, events_name, events_category, events_link = (
                 get_events_from_hnz_hp(event_each_date)
             )
             event_date_text = "{:02}".format(int(event_date_text))
 
-            # 取得したイベントをGoogleカレンダーに追加します。
+            # 取得イベントをGoogleカレンダーへ追加
             for event_name, event_category, event_time, event_link in zip(
                 events_name, events_category, events_time, events_link
             ):
@@ -66,12 +55,12 @@ def main():
                     previous_add_event_lists,
                 )
 
-        # Googleカレンダーから削除されたイベントを削除します。
+        # Googleカレンダーから削除済みイベントを削除
         remove_event_from_google_calendar(
             service, calendar_id, previous_add_event_lists
         )
 
-        # 次の月のスケジュール取得のために日付を更新します。
+        # 次月スケジュール取得のため日付更新
         current_search_date += relativedelta(months=1)
 
 

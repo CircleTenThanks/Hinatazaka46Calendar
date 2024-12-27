@@ -5,18 +5,13 @@ from text_processing import (
     get_event_member_from_event_info,
 )
 """
-このモジュールは、Google Calendar APIを使用してカレンダーの操作を行うための関数を提供します。
-主な機能は以下の通りです：
-- Google Calendar APIのセットアップ
-- 指定されたカレンダーから特定の月のスケジュールを取得
-- イベントの追加、更新、削除
-これにより、外部のスケジュール情報をGoogleカレンダーに統合し、管理を容易にします。
+Google Calendar APIを使用したカレンダー操作モジュール
 """
 
 def build_google_calendar_api():
     """
-    Google Calendar APIを構築します。
-    トークンが存在する場合はそれを使用し、存在しない場合は新たに生成します。
+    Google Calendar APIを使用する準備。
+    既存トークンを使用するか新規生成する。
     """
     SCOPES = ["https://www.googleapis.com/auth/calendar"]
     creds = None
@@ -40,22 +35,22 @@ def build_google_calendar_api():
 
 def get_schedule_from_google_calendar(service, calendar_id, year, month):
     """
-    Googleカレンダーから指定された年月のスケジュールを取得します。
-    これにより、重複してスケジュールを登録することを防ぎます。
+    指定年月のスケジュールを取得する。
+    スケジュールを重複して登録しないように工夫している。
     Args:
         service: Google Calendar APIのサービスインスタンス
         calendar_id: カレンダーID
-        year: 取得するスケジュールの年
-        month: 取得するスケジュールの月
+        year: 取得年
+        month: 取得月
     """
     timezone = "Asia/Tokyo"
 
-    # JSTタイムゾーンでの開始日時と終了日時を設定します
+    # JSTタイムゾーンでの開始・終了日時設定
     start_time = datetime.datetime(
         year, month, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
     )
-    # 翌月の4時までを取得対象とすることで、25時～28時表記のイベントもカバーします
-    # 12月の場合、翌年の1月を指定する必要があります
+    # 25時～28時表記のイベントを補正する。
+    # 12月の場合は翌年1月指定
     if month == 12:
         end_time = datetime.datetime(
             year + 1, 1, 1, 4, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
@@ -65,7 +60,7 @@ def get_schedule_from_google_calendar(service, calendar_id, year, month):
             year, month + 1, 1, 4, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
         )
 
-    # カレンダーのイベントを取得します
+    # カレンダーイベントの取得
     events_result = (
         service.events()
         .list(
@@ -87,8 +82,8 @@ def get_schedule_from_google_calendar(service, calendar_id, year, month):
         for event in events:
             event["startTimeJST"] = change_event_starttime_to_jst(event)
 
-            # HPに存在しているかを後の処理でチェックするためのキー。
-            # 存在していれば True に更新される想定。
+            # HPでの存在確認用フラグ
+            # 存在時はTrueに更新
             event["hnz_hp_checked"] = False
 
         return events
@@ -107,18 +102,18 @@ def add_event_to_google_calendar(
     previous_add_event_lists,
 ):
     """
-    Googleカレンダーにイベントを登録します。
+    Googleカレンダーへイベントを登録する。
     Args:
         service: Google Calendar APIのサービスインスタンス
         calendar_id: カレンダーID
-        year: イベントの年
-        month: イベントの月
-        event_date_text: イベントの日付テキスト
+        year: イベント年
+        month: イベント月
+        event_date_text: イベント日付テキスト
         event_name: イベント名
         event_category: イベントカテゴリ
         event_time: イベント時間
         event_link: イベントリンク
-        previous_add_event_lists: 以前に追加されたイベントリスト
+        previous_add_event_lists: 過去追加イベントリスト
     """
     (
         event_name_text,
@@ -127,7 +122,7 @@ def add_event_to_google_calendar(
         event_link_text,
     ) = get_event_info_from_hnz_hp(event_name, event_category, event_time, event_link)
 
-    # カレンダーに反映させる情報の準備
+    # カレンダー反映情報の準備
     (
         event_title,
         event_start,
@@ -142,10 +137,10 @@ def add_event_to_google_calendar(
         event_date_text,
     )
 
-    # 見つかったインデックスを格納する変数
+    # 一致イベントのインデックス格納用
     found_index = None
 
-    # eventsをイテレートして一致する要素を探す
+    # 一致要素の検索
     for index, event in enumerate(previous_add_event_lists):
         if (
             event.get("summary") == event_title
@@ -155,7 +150,7 @@ def add_event_to_google_calendar(
             previous_add_event_lists[index].update({"hnz_hp_checked": True})
             break
 
-    if found_index is not None:  # 同じ予定がすでに存在する場合は追加しない
+    if found_index is not None:  # 既存予定の場合はスキップ
         print("pass:" + event_start + " " + event_title)
         pass
     else:
@@ -177,15 +172,15 @@ def build_google_calendar_format(
     calendar_id, summary, start, end, active_members, event_link_text, is_date, service
 ):
     """
-    Googleカレンダーに登録する形式にデータを整形します。
+    Googleカレンダー登録形式へデータを整形する。
     Args:
         calendar_id: カレンダーID
-        summary: イベントの概要
-        start: イベントの開始時間
-        end: イベントの終了時間
-        active_members: イベントに参加するメンバー
-        event_link_text: イベントのリンクテキスト
-        is_date: 日付のみかどうかのフラグ
+        summary: イベント概要
+        start: 開始時間
+        end: 終了時間
+        active_members: 参加メンバー
+        event_link_text: イベントリンクテキスト
+        is_date: 日付のみフラグ
         service: Google Calendar APIのサービスインスタンス
     """
     if is_date:
@@ -227,14 +222,14 @@ def build_google_calendar_format(
 
 def remove_event_from_google_calendar(service, calendar_id, previous_add_event_lists):
     """
-    Googleカレンダーから不要なイベントを削除します。
+    Googleカレンダーからイベントを削除する。
     Args:
         service: Google Calendar APIのサービスインスタンス
         calendar_id: カレンダーID
-        previous_add_event_lists: 以前に追加されたイベントリスト
+        previous_add_event_lists: 追加済みのイベントリスト
     """
     for event in previous_add_event_lists:
-        # get_schedule_from_google_calendar では 25時～28時表記になっていた場合を考慮して翌月の4時までを取得対象としているため
+        # 25時～28時表記のイベントを考慮するため、翌月4時まで取得対象とする
         if (
             datetime.datetime.fromisoformat(event["startTimeJST"]).day == 1
             and datetime.datetime.fromisoformat(event["startTimeJST"]).day <= 4
@@ -249,7 +244,7 @@ def remove_event_from_google_calendar(service, calendar_id, previous_add_event_l
 
 def change_event_starttime_to_jst(event):
     """
-    イベントの開始時間を日本時間に変換します。
+    イベント開始時間を日本時間への変換する。
     Args:
         event: イベントデータ
     """
