@@ -1,4 +1,6 @@
-from dependencies import time, requests, BeautifulSoup
+import time
+import requests
+from bs4 import BeautifulSoup
 import text_processing
 """
 ウェブスクレイピングモジュール

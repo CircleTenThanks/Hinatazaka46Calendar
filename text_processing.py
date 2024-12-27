@@ -1,4 +1,9 @@
-from dependencies import re, mojimoji, datetime, requests, BeautifulSoup, time
+import re
+import mojimoji
+import datetime
+import requests
+from bs4 import BeautifulSoup
+import time
 from web_scraping import get_time_event_from_event_info
 """
 テキスト整形モジュール

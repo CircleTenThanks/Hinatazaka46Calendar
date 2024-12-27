@@ -1,4 +1,9 @@
-from dependencies import os, pickle, datetime, build, service_account, Request
+import os
+import pickle
+import datetime
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
+from google.auth.transport.requests import Request
 from text_processing import (
     get_event_info_from_hnz_hp,
     prepare_info_for_calendar,
