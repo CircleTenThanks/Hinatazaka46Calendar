@@ -1,9 +1,9 @@
 import time
 import requests
 from bs4 import BeautifulSoup
-from text_processing import remove_blank
+from text_formatter import remove_blank
 """
-ウェブスクレイピングモジュール
+日向坂46公式HPからのスケジュール取得モジュール
 """
 
 def fetch_url_content(year, month):

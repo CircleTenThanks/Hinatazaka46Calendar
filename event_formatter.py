@@ -2,8 +2,11 @@ import datetime
 import requests
 from bs4 import BeautifulSoup
 import time
-from web_scraping import get_time_event_from_event_info
-from text_processing import remove_blank
+from hinatazaka_scraper import get_time_event_from_event_info
+from text_formatter import remove_blank
+"""
+イベントフォーマッターモジュール
+"""
 
 def get_event_info_from_hnz_hp(event_name, event_category, event_time, event_link):
     """

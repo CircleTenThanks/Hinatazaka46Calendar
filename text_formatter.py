@@ -1,4 +1,7 @@
 import mojimoji
+"""
+テキストフォーマッターモジュール
+"""
 
 def remove_blank(text):
     """
