@@ -1,7 +1,7 @@
 import time
 import requests
 from bs4 import BeautifulSoup
-import text_processing
+from text_processing import remove_blank
 """
 ウェブスクレイピングモジュール
 """
@@ -29,10 +29,10 @@ def validate_date(soup, year, month):
         month (str): 検証する月
     """
     # ページからの年月抽出と指定年月との一致確認
-    page_year = text_processing.remove_blank(
+    page_year = remove_blank(
         soup.find("div", {"class": "c-schedule__page_year"}).text
     ).replace("年", "")
-    page_month = text_processing.remove_blank(
+    page_month = remove_blank(
         soup.find("div", {"class": "c-schedule__page_month"}).text
     ).replace("月", "")
 
@@ -67,7 +67,7 @@ def get_events_from_hnz_hp(event_each_date):
         event_each_date (bs4.element.Tag): イベント情報を含むHTMLタグ
     """
     # 日付とイベント情報の抽出
-    event_date_text = text_processing.remove_blank(event_each_date.contents[1].text)[:-1]
+    event_date_text = remove_blank(event_each_date.contents[1].text)[:-1]
     events_time = event_each_date.find_all("div", {"class": "c-schedule__time--list"})
     events_name = event_each_date.find_all("p", {"class": "c-schedule__text"})
     events_category = event_each_date.find_all("div", {"class": "p-schedule__head"})
