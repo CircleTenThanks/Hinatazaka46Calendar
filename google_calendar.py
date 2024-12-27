@@ -104,7 +104,7 @@ def add_event_to_google_calendar(
     event_category,
     event_time,
     event_link,
-    previous_add_event_lists,
+    existing_calendar_events,
 ):
     """
     Googleカレンダーへイベントを登録する。
@@ -118,7 +118,7 @@ def add_event_to_google_calendar(
         event_category: イベントカテゴリ
         event_time: イベント時間
         event_link: イベントリンク
-        previous_add_event_lists: 過去追加イベントリスト
+        existing_calendar_events: 既に追加済みのイベントリスト
     """
     (
         event_name_text,
@@ -146,13 +146,13 @@ def add_event_to_google_calendar(
     found_index = None
 
     # 一致要素の検索
-    for index, event in enumerate(previous_add_event_lists):
+    for index, event in enumerate(existing_calendar_events):
         if (
             event.get("summary") == event_title
             and event.get("startTimeJST") == event_start
         ):
             found_index = index
-            previous_add_event_lists[index].update({"hnz_hp_checked": True})
+            existing_calendar_events[index].update({"hnz_hp_checked": True})
             break
 
     if found_index is not None:  # 既存予定の場合はスキップ

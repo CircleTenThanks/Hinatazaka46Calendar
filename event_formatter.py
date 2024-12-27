@@ -79,12 +79,12 @@ def prepare_info_for_calendar(year, month, event_name_text, event_category_text,
         is_date = True
     else:
         start, end = get_time_event_from_event_info(event_time_text)
-        event_start = over24Hdatetime(year, month, event_date_text, start)
-        event_end = over24Hdatetime(year, month, event_date_text, end)
+        event_start = convert_over24h_to_datetime(year, month, event_date_text, start)
+        event_end = convert_over24h_to_datetime(year, month, event_date_text, end)
         is_date = False
     return event_title, event_start, event_end, is_date
 
-def over24Hdatetime(year: int, month: int, day: str, times: str) -> str:
+def convert_over24h_to_datetime(year: int, month: int, day: str, times: str) -> str:
     """
     24H以上の表記の時刻をdatetimeに変換する
     
