@@ -7,7 +7,7 @@ from google_calendar import (
 from hinatazaka_scraper import get_month_schedule_from_hnz_hp, get_events_from_hnz_hp
 import os
 import datetime
-from datetime import relativedelta
+from dateutil.relativedelta import relativedelta
 
 def main():
     # Google Calendar APIインスタンスの生成
