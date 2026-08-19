@@ -3,7 +3,7 @@ name = "hinatazaka46-calendar"
 version = "0.1.0"
 description = "日向坂46のスケジュールをGoogleカレンダーへ自動登録する"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 dependencies = [
     "beautifulsoup4==4.12.2",
     "google-api-python-client==2.111.0",
