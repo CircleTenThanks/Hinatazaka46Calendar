@@ -1,8 +1,10 @@
 import datetime
+import re
+import time
+
 import requests
 from bs4 import BeautifulSoup
-import time
-import re
+
 from .hinatazaka_scraper import get_time_event_from_event_info
 from .text_formatter import remove_blank
 

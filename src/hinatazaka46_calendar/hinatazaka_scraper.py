@@ -1,7 +1,10 @@
 import time
+
 import requests
 from bs4 import BeautifulSoup
+
 from .text_formatter import remove_blank
+
 """
 日向坂46公式HPからのスケジュール取得モジュール
 """

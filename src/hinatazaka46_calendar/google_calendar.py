@@ -1,14 +1,17 @@
+import datetime
 import os
 import pickle
-import datetime
-from googleapiclient.discovery import build
-from google.oauth2 import service_account
+
 from google.auth.transport.requests import Request
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
 from .event_formatter import (
     get_event_info_from_hnz_hp,
-    prepare_info_for_calendar,
     get_event_member_from_event_info,
+    prepare_info_for_calendar,
 )
+
 """
 Google Calendar APIを使用したカレンダー操作モジュール
 """
@@ -240,7 +243,7 @@ def remove_event_from_google_calendar(service, calendar_id, previous_add_event_l
             and datetime.datetime.fromisoformat(event["startTimeJST"]).day <= 4
         ):
             continue
-        if event["hnz_hp_checked"] == False:
+        if not event["hnz_hp_checked"]:
             service.events().delete(
                 calendarId=calendar_id, eventId=event["id"]
             ).execute()
