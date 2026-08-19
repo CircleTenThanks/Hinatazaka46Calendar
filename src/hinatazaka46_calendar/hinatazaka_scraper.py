@@ -9,23 +9,27 @@ from .text_formatter import remove_blank
 日向坂46公式HPからのスケジュール取得モジュール
 """
 
+
 def fetch_url_content(year, month):
     """
     指定年月のURLからのコンテンツを取得する。
-    
+
     Args:
         year (str): 取得コンテンツの年
         month (str): 取得コンテンツの月
     """
     # URLの組み立てとリクエスト送信、BeautifulSoupオブジェクトの返却
-    url = f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
+    url = (
+        f"https://www.hinatazaka46.com/s/official/media/list?ima=0000&dy={year}{month}"
+    )
     response = requests.get(url)
     return BeautifulSoup(response.content, features="lxml")
+
 
 def validate_date(soup, year, month):
     """
     ページの年月と指定年月が一致するか検証する。
-    
+
     Args:
         soup (BeautifulSoup): 解析HTML用BeautifulSoupオブジェクト
         year (str): 検証する年
@@ -44,10 +48,11 @@ def validate_date(soup, year, month):
         return False
     return True
 
+
 def get_month_schedule_from_hnz_hp(year, month):
     """
     指定月のスケジュールを取得する。
-    
+
     Args:
         year (str): 取得したいスケジュールの年
         month (str): 取得したいスケジュールの月
@@ -62,10 +67,11 @@ def get_month_schedule_from_hnz_hp(year, month):
     time.sleep(3)  # サーバー負荷軽減のための待機
     return events_each_date
 
+
 def get_events_from_hnz_hp(event_each_date):
     """
     特定日のイベントを一括取得する。
-    
+
     Args:
         event_each_date (bs4.element.Tag): イベント情報を含むHTMLタグ
     """
@@ -78,10 +84,11 @@ def get_events_from_hnz_hp(event_each_date):
 
     return event_date_text, events_time, events_name, events_category, events_link
 
+
 def get_time_event_from_event_info(event_time_text):
     """
     イベントの開始・終了時刻を取得する。
-    
+
     Args:
         event_time_text (str): イベントの開始、終了時刻
     """
@@ -91,4 +98,3 @@ def get_time_event_from_event_info(event_time_text):
     start += ":00"
     end += ":00" if has_end else start
     return start, end
-

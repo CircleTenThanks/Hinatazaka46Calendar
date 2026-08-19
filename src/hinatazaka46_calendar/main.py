@@ -30,9 +30,7 @@ def main():
         )
 
         # 日向坂46公式ホームページから当月スケジュールを取得
-        events_each_date = get_month_schedule_from_hnz_hp(
-            year, "{:02}".format(month)
-        )
+        events_each_date = get_month_schedule_from_hnz_hp(year, "{:02}".format(month))
         if events_each_date is None:
             continue
 

@@ -16,6 +16,7 @@ from .event_formatter import (
 Google Calendar APIを使用したカレンダー操作モジュール
 """
 
+
 def build_google_calendar_api():
     """
     Google Calendar APIを使用する準備。

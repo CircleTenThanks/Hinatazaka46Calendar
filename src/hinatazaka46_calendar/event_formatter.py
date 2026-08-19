@@ -12,16 +12,17 @@ from .text_formatter import remove_blank
 イベントフォーマッターモジュール
 """
 
+
 def get_event_info_from_hnz_hp(event_name, event_category, event_time, event_link):
     """
     イベント詳細情報を取得する
-    
+
     Args:
         event_name (bs4.element.Tag): イベント名のHTMLタグ
         event_category (bs4.element.Tag): イベントカテゴリのHTMLタグ
         event_time (bs4.element.Tag): イベント時間のHTMLタグ
         event_link (bs4.element.Tag): イベントリンクのHTMLタグ
-        
+
     Returns:
         tuple: イベント名、カテゴリ、時間、リンクのテキスト情報
     """
@@ -32,13 +33,14 @@ def get_event_info_from_hnz_hp(event_name, event_category, event_time, event_lin
 
     return event_name_text, event_category_text, event_time_text, event_link_text
 
+
 def get_event_member_from_event_info(event_link_text):
     """
     イベント登録メンバーを取得する
-    
+
     Args:
         event_link_text (str): イベント詳細ページのURL
-        
+
     Returns:
         str: メンバーのテキスト情報。メンバー未登録時は空文字列。
     """
@@ -57,10 +59,13 @@ def get_event_member_from_event_info(event_link_text):
 
     return members_text
 
-def prepare_info_for_calendar(year, month, event_name_text, event_category_text, event_time_text, event_date_text):
+
+def prepare_info_for_calendar(
+    year, month, event_name_text, event_category_text, event_time_text, event_date_text
+):
     """
     Googleカレンダー登録情報を整形する。
-    
+
     Args:
         year (int): イベント年
         month (int): イベント月
@@ -68,7 +73,7 @@ def prepare_info_for_calendar(year, month, event_name_text, event_category_text,
         event_category_text (str): イベントカテゴリ
         event_time_text (str): イベント時間
         event_date_text (str): イベント日
-        
+
     Returns:
         tuple: イベントタイトル、開始日時、終了日時、日付のみかを示すフラグ。
     """
@@ -86,16 +91,17 @@ def prepare_info_for_calendar(year, month, event_name_text, event_category_text,
         is_date = False
     return event_title, event_start, event_end, is_date
 
+
 def convert_over24h_to_datetime(year: int, month: int, day: str, times: str) -> str:
     """
     24H以上の表記の時刻をdatetimeに変換する
-    
+
     Args:
         year (int): 年
         month (int): 月
         day (str): 日
         times (str): 時刻文字列
-        
+
     Returns:
         str: ISO形式の日時文字列
     """
