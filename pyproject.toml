@@ -3,17 +3,14 @@ name = "hinatazaka46-calendar"
 version = "0.1.0"
 description = "日向坂46のスケジュールをGoogleカレンダーへ自動登録する"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 dependencies = [
-    "beautifulsoup4==4.12.2",
-    "google-api-python-client==2.198.0",
-    "google-auth-httplib2==0.2.0",
-    "google-auth-oauthlib==1.2.0",
-    "lxml==6.1.0",
-    "mojimoji==0.0.12",
-    "python-dateutil==2.8.2",
+    "beautifulsoup4>=4.14.2",
+    "google-api-python-client>=2.187.0",
+    "lxml>=6.0.2",
+    "mojimoji>=0.0.13",
+    "python-dateutil>=2.9.0",
     "requests>=2.32.5",
-    "tendo==0.3.0",
 ]
 
 [project.scripts]
@@ -22,3 +19,28 @@ hinatazaka46-calendar = "hinatazaka46_calendar.main:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py314"
+preview = true
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "missing-trailing-comma",
+    "single-line-implicit-string-concatenation",
+    "incorrect-blank-line-before-class",
+    "multi-line-summary-second-line",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.3",
+]
