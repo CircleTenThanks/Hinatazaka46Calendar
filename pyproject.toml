@@ -5,7 +5,7 @@ description = "日向坂46のスケジュールをGoogleカレンダーへ自動
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "beautifulsoup4==4.12.2",
+    "beautifulsoup4==4.15.0",
     "google-api-python-client==2.111.0",
     "google-auth-httplib2==0.2.0",
     "google-auth-oauthlib==1.2.0",
