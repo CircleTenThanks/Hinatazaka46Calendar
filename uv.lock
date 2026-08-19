@@ -337,7 +337,7 @@ requires-dist = [
     { name = "google-auth-httplib2", specifier = "==0.2.0" },
     { name = "google-auth-oauthlib", specifier = "==1.2.0" },
     { name = "lxml", specifier = "==6.1.0" },
-    { name = "mojimoji", specifier = "==0.0.12" },
+    { name = "mojimoji", specifier = "==0.0.13" },
     { name = "python-dateutil", specifier = "==2.8.2" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "tendo", specifier = "==0.3.0" },
@@ -413,9 +413,9 @@ wheels = [
 
 [[package]]
 name = "mojimoji"
-version = "0.0.12"
+version = "0.0.13"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c8/a1/debe1812f9d437f65cd58d7990a19815243dbb6b9b132123560b2b9e335a/mojimoji-0.0.12.tar.gz", hash = "sha256:01a3d73e8b3c641386b1824d5106b8ea5c351a641623c910d89d8f02520c1b0e", size = 43239, upload-time = "2021-11-15T11:56:03.155Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/08/fb/ee22357cd7622fb879fac575feaffc54469ed9a0c1d9073355b1ebc62b7f/mojimoji-0.0.13.tar.gz", hash = "sha256:0e6d2fba22cc8bf132a5bdf3a964296d9287a618d09681a12868f0fd518e4230", size = 5010, upload-time = "2024-01-12T10:38:30.532Z" }
 
 [[package]]
 name = "oauthlib"
