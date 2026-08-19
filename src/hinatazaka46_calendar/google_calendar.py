@@ -1,77 +1,102 @@
-import datetime
-import os
-import pickle
+# Copyright (c) 2026 CircleTenThanks
+"""Google Calendar APIを使用したカレンダー操作."""
 
-from google.auth.transport.requests import Request
+import datetime
+import logging
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TYPE_CHECKING
+
 from google.oauth2 import service_account
-from googleapiclient.discovery import build
+from googleapiclient.discovery import Resource, build
 
 from .event_formatter import (
+    CalendarEventTimes,
+    EventDate,
     get_event_info_from_hnz_hp,
     get_event_member_from_event_info,
     prepare_info_for_calendar,
 )
 
-"""
-Google Calendar APIを使用したカレンダー操作モジュール
-"""
+if TYPE_CHECKING:
+    from bs4 import Tag
+
+LOGGER = logging.getLogger(__name__)
+_CALENDAR_SCOPES = ("https://www.googleapis.com/auth/calendar",)
+_CREDENTIALS_PATH = Path("credentials_hnz.json")
+_JST = datetime.timezone(datetime.timedelta(hours=9))
+_DECEMBER = 12
+_OVERNIGHT_END_HOUR = 4
+_FIRST_DAY = 1
 
 
-def build_google_calendar_api():
+@dataclass(frozen=True)
+class ScrapedEvent:
+    """公式HPから取得した1件のイベント."""
+
+    year: int
+    month: int
+    date_text: str
+    name: Tag
+    category: Tag
+    time: Tag
+    link: Tag
+
+
+def build_google_calendar_api() -> Resource:
+    """Google Calendar APIクライアントを生成する.
+
+    Returns:
+        Google Calendar APIのサービスインスタンス。
     """
-    Google Calendar APIを使用する準備。
-    既存トークンを使用するか新規生成する。
-    """
-    SCOPES = ["https://www.googleapis.com/auth/calendar"]
-    creds = None
-    if os.path.exists("token.pickle"):
-        with open("token.pickle", "rb") as token:
-            creds = pickle.load(token)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            creds = service_account.Credentials.from_service_account_file(
-                "credentials_hnz.json", scopes=SCOPES
-            )
-        with open("token.pickle", "wb") as token:
-            pickle.dump(creds, token)
-
-    service = build("calendar", "v3", credentials=creds)
-
-    return service
+    creds = service_account.Credentials.from_service_account_file(
+        str(_CREDENTIALS_PATH),
+        scopes=_CALENDAR_SCOPES,
+    )
+    return build("calendar", "v3", credentials=creds)
 
 
-def get_schedule_from_google_calendar(service, calendar_id, year, month):
-    """
-    指定年月のスケジュールを取得する。
-    スケジュールを重複して登録しないように工夫している。
+def get_schedule_from_google_calendar(
+    service: Resource,
+    calendar_id: str,
+    year: int,
+    month: int,
+) -> list[dict]:
+    """指定年月のスケジュールを取得する.
+
+    スケジュールを重複して登録しないように既存イベントを返す。
+
     Args:
-        service: Google Calendar APIのサービスインスタンス
-        calendar_id: カレンダーID
-        year: 取得年
-        month: 取得月
+        service: Google Calendar APIのサービスインスタンス。
+        calendar_id: カレンダーID。
+        year: 取得年。
+        month: 取得月。
+
+    Returns:
+        既存イベントのリスト。
     """
     timezone = "Asia/Tokyo"
-
-    # JSTタイムゾーンでの開始・終了日時設定
-    start_time = datetime.datetime(
-        year, month, 1, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
-    )
-    # 25時～28時表記のイベントを補正する。
-    # 12月の場合は翌年1月指定
-    if month == 12:
+    start_time = datetime.datetime(year, month, _FIRST_DAY, tzinfo=_JST)
+    if month == _DECEMBER:
         end_time = datetime.datetime(
-            year + 1, 1, 1, 4, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
+            year + 1,
+            1,
+            _FIRST_DAY,
+            _OVERNIGHT_END_HOUR,
+            tzinfo=_JST,
         )
     else:
         end_time = datetime.datetime(
-            year, month + 1, 1, 4, tzinfo=datetime.timezone(datetime.timedelta(hours=9))
+            year,
+            month + 1,
+            _FIRST_DAY,
+            _OVERNIGHT_END_HOUR,
+            tzinfo=_JST,
         )
 
-    # カレンダーイベントの取得
     events_result = (
-        service.events()
+        service
+        .events()
         .list(
             calendarId=calendar_id,
             timeMin=start_time.isoformat(),
@@ -82,187 +107,155 @@ def get_schedule_from_google_calendar(service, calendar_id, year, month):
         )
         .execute()
     )
-
     events = events_result.get("items", [])
-
     if not events:
         return []
-    else:
-        for event in events:
-            event["startTimeJST"] = change_event_starttime_to_jst(event)
 
-            # HPでの存在確認用フラグ
-            # 存在時はTrueに更新
-            event["hnz_hp_checked"] = False
-
-        return events
+    for event in events:
+        event["startTimeJST"] = change_event_starttime_to_jst(event)
+        event["hnz_hp_checked"] = False
+    return events
 
 
 def add_event_to_google_calendar(
-    service,
-    calendar_id,
-    year,
-    month,
-    event_date_text,
-    event_name,
-    event_category,
-    event_time,
-    event_link,
-    existing_calendar_events,
-):
-    """
-    Googleカレンダーへイベントを登録する。
+    service: Resource,
+    calendar_id: str,
+    scraped: ScrapedEvent,
+    existing_calendar_events: list[dict],
+) -> None:
+    """Googleカレンダーへイベントを登録する.
+
     Args:
-        service: Google Calendar APIのサービスインスタンス
-        calendar_id: カレンダーID
-        year: イベント年
-        month: イベント月
-        event_date_text: イベント日付テキスト
-        event_name: イベント名
-        event_category: イベントカテゴリ
-        event_time: イベント時間
-        event_link: イベントリンク
-        existing_calendar_events: 既に追加済みのイベントリスト
+        service: Google Calendar APIのサービスインスタンス。
+        calendar_id: カレンダーID。
+        scraped: 公式HPから取得したイベント。
+        existing_calendar_events: 既に追加済みのイベントリスト。
     """
     (
         event_name_text,
         event_category_text,
         event_time_text,
         event_link_text,
-    ) = get_event_info_from_hnz_hp(event_name, event_category, event_time, event_link)
-
-    # カレンダー反映情報の準備
-    (
-        event_title,
-        event_start,
-        event_end,
-        is_date,
-    ) = prepare_info_for_calendar(
-        year,
-        month,
+    ) = get_event_info_from_hnz_hp(
+        scraped.name,
+        scraped.category,
+        scraped.time,
+        scraped.link,
+    )
+    times = prepare_info_for_calendar(
+        EventDate(year=scraped.year, month=scraped.month, day=scraped.date_text),
         event_name_text,
         event_category_text,
         event_time_text,
-        event_date_text,
     )
 
-    # 一致イベントのインデックス格納用
-    found_index = None
+    found_index = _find_existing_event_index(
+        existing_calendar_events,
+        times.title,
+        times.start,
+    )
+    if found_index is not None:
+        existing_calendar_events[found_index]["hnz_hp_checked"] = True
+        LOGGER.info("pass:%s %s", times.start, times.title)
+        return
 
-    # 一致要素の検索
+    active_members = get_event_member_from_event_info(event_link_text)
+    LOGGER.info("add:%s %s", times.start, times.title)
+    build_google_calendar_format(
+        service, calendar_id, times, active_members, event_link_text
+    )
+
+
+def _find_existing_event_index(
+    existing_calendar_events: list[dict],
+    event_title: str,
+    event_start: str,
+) -> int | None:
+    """一致する既存イベントのインデックスを返す.
+
+    Returns:
+        一致したインデックス. なければ None.
+    """
     for index, event in enumerate(existing_calendar_events):
         if (
             event.get("summary") == event_title
             and event.get("startTimeJST") == event_start
         ):
-            found_index = index
-            existing_calendar_events[index].update({"hnz_hp_checked": True})
-            break
-
-    if found_index is not None:  # 既存予定の場合はスキップ
-        print("pass:" + event_start + " " + event_title)
-        pass
-    else:
-        active_members = get_event_member_from_event_info(event_link_text)
-        print("add:" + event_start + " " + event_title)
-        build_google_calendar_format(
-            calendar_id,
-            event_title,
-            event_start,
-            event_end,
-            active_members,
-            event_link_text,
-            is_date,
-            service,
-        )
+            return index
+    return None
 
 
 def build_google_calendar_format(
-    calendar_id, summary, start, end, active_members, event_link_text, is_date, service
-):
-    """
-    Googleカレンダー登録形式へデータを整形する。
+    service: Resource,
+    calendar_id: str,
+    times: CalendarEventTimes,
+    active_members: str,
+    event_link_text: str,
+) -> None:
+    """Googleカレンダー登録形式へデータを整形して登録する.
+
     Args:
-        calendar_id: カレンダーID
-        summary: イベント概要
-        start: 開始時間
-        end: 終了時間
-        active_members: 参加メンバー
-        event_link_text: イベントリンクテキスト
-        is_date: 日付のみフラグ
-        service: Google Calendar APIのサービスインスタンス
+        service: Google Calendar APIのサービスインスタンス。
+        calendar_id: カレンダーID。
+        times: 登録する日時情報。
+        active_members: 参加メンバー。
+        event_link_text: イベントリンクテキスト。
     """
-    if is_date:
-        event = {
-            "summary": summary,
-            "description": event_link_text + "\n" + active_members,
-            "start": {
-                "date": start,
-                "timeZone": "Japan",
-            },
-            "end": {
-                "date": end,
-                "timeZone": "Japan",
-            },
-        }
-    else:
-        event = {
-            "summary": summary,
-            "description": event_link_text + "\n" + active_members,
-            "start": {
-                "dateTime": start,
-                "timeZone": "Japan",
-            },
-            "end": {
-                "dateTime": end,
-                "timeZone": "Japan",
-            },
-        }
-
-    event = (
-        service.events()
-        .insert(
-            calendarId=calendar_id,
-            body=event,
-        )
-        .execute()
-    )
+    date_key = "date" if times.is_date else "dateTime"
+    event = {
+        "summary": times.title,
+        "description": event_link_text + "\n" + active_members,
+        "start": {
+            date_key: times.start,
+            "timeZone": "Japan",
+        },
+        "end": {
+            date_key: times.end,
+            "timeZone": "Japan",
+        },
+    }
+    service.events().insert(calendarId=calendar_id, body=event).execute()
 
 
-def remove_event_from_google_calendar(service, calendar_id, previous_add_event_lists):
-    """
-    Googleカレンダーからイベントを削除する。
+def remove_event_from_google_calendar(
+    service: Resource,
+    calendar_id: str,
+    previous_add_event_lists: list[dict],
+) -> None:
+    """Googleカレンダーからイベントを削除する.
+
     Args:
-        service: Google Calendar APIのサービスインスタンス
-        calendar_id: カレンダーID
-        previous_add_event_lists: 追加済みのイベントリスト
+        service: Google Calendar APIのサービスインスタンス。
+        calendar_id: カレンダーID。
+        previous_add_event_lists: 追加済みのイベントリスト。
     """
     for event in previous_add_event_lists:
-        # 25時～28時表記のイベントを考慮するため、翌月4時まで取得対象とする
-        if (
-            datetime.datetime.fromisoformat(event["startTimeJST"]).day == 1
-            and datetime.datetime.fromisoformat(event["startTimeJST"]).day <= 4
-        ):
+        start_jst = datetime.datetime.fromisoformat(event["startTimeJST"])
+        if start_jst.day == _FIRST_DAY and start_jst.day <= _OVERNIGHT_END_HOUR:
             continue
         if not event["hnz_hp_checked"]:
             service.events().delete(
-                calendarId=calendar_id, eventId=event["id"]
+                calendarId=calendar_id,
+                eventId=event["id"],
             ).execute()
-            print(f"del:{event['startTimeJST']} {event['summary']}")
+            LOGGER.info("del:%s %s", event["startTimeJST"], event["summary"])
 
 
-def change_event_starttime_to_jst(event):
-    """
-    イベント開始時間を日本時間への変換する。
+def change_event_starttime_to_jst(event: dict) -> str:
+    """イベント開始時間を日本時間へ変換する.
+
     Args:
-        event: イベントデータ
+        event: イベントデータ。
+
+    Returns:
+        JSTの日付または日時文字列。
     """
-    if "date" in event["start"].keys():
+    if "date" in event["start"]:
         return event["start"]["date"]
-    else:
-        str_event_uct_time = event["start"]["dateTime"]
-        event_jst_time = datetime.datetime.strptime(
-            str_event_uct_time, "%Y-%m-%dT%H:%M:%S+09:00"
-        )
-        str_event_jst_time = event_jst_time.strftime("%Y-%m-%dT%H:%M:%S")
-        return str_event_jst_time
+
+    str_event_uct_time = event["start"]["dateTime"]
+    event_jst_time = datetime.datetime.strptime(
+        str_event_uct_time,
+        "%Y-%m-%dT%H:%M:%S%z",
+    )
+    return event_jst_time.strftime("%Y-%m-%dT%H:%M:%S")

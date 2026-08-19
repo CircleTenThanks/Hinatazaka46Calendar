@@ -25,10 +25,23 @@ build-backend = "hatchling.build"
 
 [tool.ruff]
 target-version = "py314"
+preview = true
 src = ["src"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
+select = ["ALL"]
+ignore = [
+    "missing-trailing-comma",
+    "single-line-implicit-string-concatenation",
+    "incorrect-blank-line-before-class",
+    "multi-line-summary-second-line",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [dependency-groups]
 dev = [
