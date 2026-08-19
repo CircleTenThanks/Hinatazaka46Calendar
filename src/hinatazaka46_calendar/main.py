@@ -1,10 +1,10 @@
-from google_calendar import (
+from .google_calendar import (
     build_google_calendar_api,
     get_schedule_from_google_calendar,
     add_event_to_google_calendar,
     remove_event_from_google_calendar,
 )
-from hinatazaka_scraper import get_month_schedule_from_hnz_hp, get_events_from_hnz_hp
+from .hinatazaka_scraper import get_month_schedule_from_hnz_hp, get_events_from_hnz_hp
 import os
 import datetime
 from dateutil.relativedelta import relativedelta
