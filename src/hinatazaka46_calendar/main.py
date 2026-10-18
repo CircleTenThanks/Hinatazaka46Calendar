@@ -3,7 +3,7 @@
 # 一部は https://qiita.com/ddn/items/42def5fa721e531eecdb を基に改変している.
 """日向坂46のスケジュールをGoogleカレンダーへ反映する."""
 
-import datetime
+import datetime as dt
 import logging
 import os
 
@@ -18,7 +18,7 @@ from .google_calendar import (
 )
 from .hinatazaka_scraper import get_events_from_hnz_hp, get_month_schedule_from_hnz_hp
 
-_JST = datetime.timezone(datetime.timedelta(hours=9))
+_JST = dt.timezone(dt.timedelta(hours=9))
 _SEARCH_MONTHS = 3
 
 
@@ -27,7 +27,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     service = build_google_calendar_api()
     calendar_id = os.environ["CALENDAR_ID_HNZ"]
-    current_search_date = datetime.datetime.now(tz=_JST)
+    current_search_date = dt.datetime.now(tz=_JST)
 
     for _ in range(_SEARCH_MONTHS):
         year = current_search_date.year
