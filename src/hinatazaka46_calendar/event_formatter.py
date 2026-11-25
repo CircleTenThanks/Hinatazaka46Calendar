@@ -3,7 +3,7 @@
 # 一部は https://qiita.com/ddn/items/42def5fa721e531eecdb を基に改変している.
 """イベント情報をGoogleカレンダー登録形式へ整形する."""
 
-import datetime
+import datetime as dt
 import re
 import time
 from dataclasses import dataclass
@@ -16,7 +16,7 @@ from .text_formatter import remove_blank
 
 _REQUEST_TIMEOUT_SECONDS = 30
 _SCRAPE_WAIT_SECONDS = 3
-_JST = datetime.timezone(datetime.timedelta(hours=9))
+_JST = dt.timezone(dt.timedelta(hours=9))
 
 
 @dataclass(frozen=True)
@@ -158,12 +158,12 @@ def convert_over24h_to_datetime(year: int, month: int, day: str, times: str) -> 
             hour, minute = "0", "0"
 
     minutes = int(hour) * 60 + int(minute)
-    dt = datetime.datetime(
+    start = dt.datetime(
         year=int(year),
         month=int(month),
         day=int(day),
         tzinfo=_JST,
     )
-    dt += datetime.timedelta(minutes=minutes)
+    start += dt.timedelta(minutes=minutes)
 
-    return dt.strftime("%Y-%m-%dT%H:%M:%S")
+    return start.strftime("%Y-%m-%dT%H:%M:%S")

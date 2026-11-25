@@ -3,7 +3,7 @@
 # 一部は https://qiita.com/ddn/items/42def5fa721e531eecdb を基に改変している.
 """Google Calendar APIを使用したカレンダー操作."""
 
-import datetime
+import datetime as dt
 import logging
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 LOGGER = logging.getLogger(__name__)
 _CALENDAR_SCOPES = ("https://www.googleapis.com/auth/calendar",)
 _CREDENTIALS_PATH = Path("credentials_hnz.json")
-_JST = datetime.timezone(datetime.timedelta(hours=9))
+_JST = dt.timezone(dt.timedelta(hours=9))
 _DECEMBER = 12
 _OVERNIGHT_END_HOUR = 4
 _FIRST_DAY = 1
@@ -78,9 +78,9 @@ def get_schedule_from_google_calendar(
         既存イベントのリスト。
     """
     timezone = "Asia/Tokyo"
-    start_time = datetime.datetime(year, month, _FIRST_DAY, tzinfo=_JST)
+    start_time = dt.datetime(year, month, _FIRST_DAY, tzinfo=_JST)
     if month == _DECEMBER:
-        end_time = datetime.datetime(
+        end_time = dt.datetime(
             year + 1,
             1,
             _FIRST_DAY,
@@ -88,7 +88,7 @@ def get_schedule_from_google_calendar(
             tzinfo=_JST,
         )
     else:
-        end_time = datetime.datetime(
+        end_time = dt.datetime(
             year,
             month + 1,
             _FIRST_DAY,
@@ -232,7 +232,7 @@ def remove_event_from_google_calendar(
         previous_add_event_lists: 追加済みのイベントリスト。
     """
     for event in previous_add_event_lists:
-        start_jst = datetime.datetime.fromisoformat(event["startTimeJST"])
+        start_jst = dt.datetime.fromisoformat(event["startTimeJST"])
         if start_jst.day == _FIRST_DAY and start_jst.day <= _OVERNIGHT_END_HOUR:
             continue
         if not event["hnz_hp_checked"]:
@@ -256,7 +256,7 @@ def change_event_starttime_to_jst(event: dict) -> str:
         return event["start"]["date"]
 
     str_event_uct_time = event["start"]["dateTime"]
-    event_jst_time = datetime.datetime.strptime(
+    event_jst_time = dt.datetime.strptime(
         str_event_uct_time,
         "%Y-%m-%dT%H:%M:%S%z",
     )
