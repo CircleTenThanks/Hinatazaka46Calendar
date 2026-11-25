@@ -1,0 +1,31 @@
+name: Sync Calendar
+
+on:
+  schedule:
+    - cron: "11 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-calendar
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.4.0
+      - name: Create credentials file
+        run: printf '%s\n' "$GOOGLE_CREDENTIALS" > credentials_hnz.json
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.CREDENTIALS_HNZ_JSON }}
+      - name: Sync schedule to Google Calendar
+        run: uv run --frozen --no-dev hinatazaka46-calendar
+        env:
+          CALENDAR_ID_HNZ: ${{ secrets.CALENDAR_ID_HNZ }}
+      - name: Remove credentials file
+        if: always()
+        run: rm -f credentials_hnz.json

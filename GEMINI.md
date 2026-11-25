@@ -19,9 +19,9 @@
   - 逆に、月初の削除判定（`remove_event_from_google_calendar()`）では、前月末から越境してきた「1日の0時〜4時」の予定を誤削除しないよう保護している。
 - **差分削除**: 公式サイトから削除・変更された予定をカレンダーから消すため、既存予定に `hnz_hp_checked` フラグを持たせ、公式HP側と一致しなかった未チェック予定は `delete` する。
 
-### 親リポジトリ（RenderWrapper）との連携
-- 本番環境（Render.com の CRON JOB）では、単体デプロイではなく親リポジトリ `RenderWrapper` から `hinatazaka46_calendar.main:main` が呼び出されて稼働する。
-- パッケージ構成は `src/hinatazaka46_calendar/` の **`src` レイアウト**を維持し、`pyproject.toml` の依存関係を変更した場合は `uv lock` で `uv.lock` を更新するとともに、必要に応じて `RenderWrapper` 側の依存関係との整合性も確認する。
+### GitHub Actions による定期実行
+- 本番環境では、GitHub Actions（`.github/workflows/sync-calendar.yml`）の `schedule`（`11 2 * * *`）および `workflow_dispatch` によって `uv run --frozen --no-dev hinatazaka46-calendar`（`hinatazaka46_calendar.main:main`）が定期実行されて稼働する。
+- パッケージ構成は `src/hinatazaka46_calendar/` の **`src` レイアウト**を維持し、`pyproject.toml` の依存関係を変更した場合は `uv lock` で `uv.lock` を更新する。
 
 ---
 
@@ -67,6 +67,6 @@ uv run --frozen ruff format --check
   - `Upgrade: ...`（依存パッケージのバージョン更新）
 
 ### 実行環境・認証情報
-- 環境変数: `CALENDAR_ID_HNZ`（登録先のGoogleカレンダーID）
-- サービスアカウント認証ファイル: カレントディレクトリの `credentials_hnz.json`（Git管理外・秘匿情報のため絶対にコミットしない）
+- 環境変数: `CALENDAR_ID_HNZ`（登録先のGoogleカレンダーID。GitHub Actions Secrets の `CALENDAR_ID_HNZ` に設定）
+- サービスアカウント認証ファイル: カレントディレクトリの `credentials_hnz.json`（Git管理外・秘匿情報のため絶対にコミットしない。GitHub Actions では Secrets の `CREDENTIALS_HNZ_JSON` から実行時に生成する）
 - ドキュメント: ユーザー向け案内は `docs/README.md`（GitHub Pages用）、開発・運用概要はルートの `README.md` に分離して管理する。
