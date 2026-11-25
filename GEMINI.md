@@ -22,6 +22,7 @@
 ### GitHub Actions による定期実行
 - 本番環境では、GitHub Actions（`.github/workflows/sync-calendar.yml`）の `schedule`（`11 2 * * *`）および `workflow_dispatch` によって `uv run --frozen --no-dev hinatazaka46-calendar`（`hinatazaka46_calendar.main:main`）が定期実行されて稼働する。
 - パッケージ構成は `src/hinatazaka46_calendar/` の **`src` レイアウト**を維持し、`pyproject.toml` の依存関係を変更した場合は `uv lock` で `uv.lock` を更新する。
+- **GitHub Actions のバージョン指定ルール**: `.github/workflows/*.yml` で外部 Action（`uses:`）を指定する際は、メジャーバージョンタグ（`@v7` など）ではなく、**その時点の最新安定バージョンをパッチバージョンまで明示（例: `actions/checkout@v7.0.1`, `astral-sh/setup-uv@v10.4.0`, `dependabot/fetch-metadata@v3.1.0`）して記載する**こと。ワークフローの新規作成・更新時は、既存ファイルを含めすべての Action が最新安定バージョンになっているか確認する。
 
 ---
 
